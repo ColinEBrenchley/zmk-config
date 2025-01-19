@@ -1,0 +1,6 @@
+if SHIELD_LILY58RIGHT
+
+config ZMK_KEYBOARD_NAME
+    default "lily58right"
+
+endif
