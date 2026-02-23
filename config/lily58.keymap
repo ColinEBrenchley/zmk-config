@@ -10,14 +10,6 @@
 #include <dt-bindings/zmk/ext_power.h>
 
 / {
-    combos {
-        combo_backspace {
-            timeout-ms = <30>; 
-            key-positions = <29 30 31 32>; // Replace with the key positions of J, K, L
-            bindings = <&kp BSPC>;
-        };
-    };
-
     keymap {
         compatible = "zmk,keymap";
 
