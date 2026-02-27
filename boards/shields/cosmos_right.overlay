@@ -1,0 +1,13 @@
+/*
+ * Copyright (c) 2022 The ZMK Contributors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+#include "cosmos.dtsi"
+
+/ {
+    chosen {
+        zmk,split_role = "peripheral";
+    };
+};

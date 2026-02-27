@@ -1,0 +1,7 @@
+identifier: cosmos_right
+name: Cosmos Right
+type: shield
+url: https://github.com/zmkfirmware/zmk
+requires: [pro_micro]
+features:
+  - keys
