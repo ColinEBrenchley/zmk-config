@@ -1,2 +1,0 @@
-zephyr_sources_ifdef(CONFIG_SHIELD_COSMOS_LEFT cosmos_left.overlay)
-zephyr_sources_ifdef(CONFIG_SHIELD_COSMOS_RIGHT cosmos_right.overlay)
