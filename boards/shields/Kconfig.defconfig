@@ -5,37 +5,11 @@ if SHIELD_COSMOS_LEFT
 config ZMK_KEYBOARD_NAME
     default "Cosmos Left"
 
-config ZMK_SPLIT_ROLE_CENTRAL
-    default y
-
 endif
 
 if SHIELD_COSMOS_RIGHT
 
 config ZMK_KEYBOARD_NAME
     default "Cosmos Right"
-
-config ZMK_SPLIT_ROLE_PERIPHERAL
-    default y
-
-endif
-
-if SHIELD_LILY58_LEFT
-
-config ZMK_KEYBOARD_NAME
-    default "Lily58 Left"
-
-config ZMK_SPLIT_ROLE_CENTRAL
-    default y
-
-endif
-
-if SHIELD_LILY58_RIGHT
-
-config ZMK_KEYBOARD_NAME
-    default "Lily58 Right"
-
-config ZMK_SPLIT_ROLE_PERIPHERAL
-    default y
 
 endif

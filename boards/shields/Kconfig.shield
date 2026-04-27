@@ -6,9 +6,3 @@ config SHIELD_COSMOS_LEFT
 
 config SHIELD_COSMOS_RIGHT
     def_bool $(shields_list_contains,cosmos_right)
-
-config SHIELD_LILY58_LEFT
-    def_bool $(shields_list_contains,lily58_left)
-
-config SHIELD_LILY58_RIGHT
-    def_bool $(shields_list_contains,lily58_right)
