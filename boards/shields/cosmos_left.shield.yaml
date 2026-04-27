@@ -1,7 +1,0 @@
-identifier: cosmos_left
-name: Cosmos Left
-type: shield
-requires:
-  - nice_nano_v2
-features:
-  - keys
