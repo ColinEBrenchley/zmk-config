@@ -34,11 +34,11 @@
 
         col-gpios
             = <&gpio0 10 GPIO_ACTIVE_HIGH>   /* col 6 → outermost */
-            , <&gpio0 24 GPIO_ACTIVE_HIGH>   /* col 5 */
-            , <&gpio1  0 GPIO_ACTIVE_HIGH>   /* col 4 */
-            , <&gpio0 11 GPIO_ACTIVE_HIGH>   /* col 3 */
-            , <&gpio1  4 GPIO_ACTIVE_HIGH>   /* col 2 */
             , <&gpio1  6 GPIO_ACTIVE_HIGH>   /* col 1 */
+            , <&gpio1  4 GPIO_ACTIVE_HIGH>   /* col 2 */
+            , <&gpio0 11 GPIO_ACTIVE_HIGH>   /* col 3 */
+            , <&gpio1  0 GPIO_ACTIVE_HIGH>   /* col 4 */
+            , <&gpio0 24 GPIO_ACTIVE_HIGH>   /* col 5 */
             , <&gpio0  9 GPIO_ACTIVE_HIGH>   /* col 0 → innermost (closest to center) */
             ;
     };
