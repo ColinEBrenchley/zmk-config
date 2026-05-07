@@ -6,6 +6,7 @@
  */
 
 #include <dt-bindings/zmk/matrix_transform.h>
+#include "cosmos.dtsi"
 
 / {
     chosen {
@@ -16,7 +17,6 @@
         compatible = "zmk,kscan-gpio-matrix";
         label = "KSCAN";
         diode-direction = "col2row";
-        col-offset = <7>;
 
         /*
          * nice!nano v2 pinout — Right Half
@@ -26,20 +26,25 @@
          */
         row-gpios
             = <&gpio0 31 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            , <&gpio1 13 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            , <&gpio1 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            , <&gpio0  2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
             , <&gpio0 29 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio1 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio1 13 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio0  2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
             ;
 
         col-gpios
-            = <&gpio0  9 GPIO_ACTIVE_HIGH>   /* col 0 → innermost (closest to center) */
+            = <&gpio0 24 GPIO_ACTIVE_HIGH>   /* col 5 */
+            , <&gpio0  9 GPIO_ACTIVE_HIGH>   /* col 0 → innermost (closest to center) */
             , <&gpio1  6 GPIO_ACTIVE_HIGH>   /* col 1 */
             , <&gpio1  4 GPIO_ACTIVE_HIGH>   /* col 2 */
             , <&gpio0 11 GPIO_ACTIVE_HIGH>   /* col 3 */
             , <&gpio1  0 GPIO_ACTIVE_HIGH>   /* col 4 */
-            , <&gpio0 24 GPIO_ACTIVE_HIGH>   /* col 5 */
             , <&gpio0 10 GPIO_ACTIVE_HIGH>   /* col 6 → outermost */
             ;
     };
+};
+
+
+&default_transform {
+    col-offset = <6>;
 };
