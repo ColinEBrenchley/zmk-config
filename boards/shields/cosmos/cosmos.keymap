@@ -11,14 +11,24 @@
 #define BASE  0
 #define LOWER 1
 #define RAISE 2
-#define ADJUST 3
+#define GAMING 3
 
 / {
+    combos {
+        compatible = "zmk,combos";
+        
+        toggle_gaming {
+            timeout-ms = <50>;
+            key-positions = <58 64>;  /* LOWER and RAISE positions */
+            bindings = <&tog GAMING>;
+        };
+    };
+
     conditional_layers {
         compatible = "zmk,conditional-layers";
         adjust_layer {
             if-layers = <LOWER RAISE>;
-            then-layer = <ADJUST>;
+            then-layer = <GAMING>;
         };
     };
 
@@ -52,11 +62,11 @@
         /* ─── Layer 1: Lower — Symbols & F-Keys ─────────────────────────*/
         lower_layer {
             bindings = <
-                &kp GRAVE &kp F1   &kp F2   &kp F3   &kp F4   &kp F5                &kp F7       &kp F8    &kp F9    &kp F10   &kp F11   &kp F12   &kp DEL
-                &trans    &kp EXCL &kp AT   &kp HASH &kp DLLR &kp PRCNT             &trans       &kp CARET &kp AMPS  &kp STAR  &kp LPAR  &kp RPAR  &trans
-                &kp GRAVE  &kp EXCL &kp AT  &kp HASH &kp DOLLAR &kp PRCNT           &kp CARET    &kp AMPS  &kp ASTRK &kp LPAR  &kp RPAR  &kp TILDE &trans
-                &trans    &trans   &trans   &trans   &trans   &trans                &trans       &kp UNDER &kp EQUAL &kp LBKT  &kp RBKT  &kp BSLH  &trans
-                &trans    &trans   &trans   &trans   &trans   &trans                &trans       &trans    &trans    &kp HOME  &kp PG_DN &kp PG_UP  &kp END
+                &trans    &kp EXCL &kp AT   &kp HASH &kp DLLR &kp PRCNT             &trans     &kp CARET &kp AMPS  &kp STAR  &kp LPAR  &kp RPAR 
+                &kp GRAVE &kp F1   &kp F2   &kp F3   &kp F4   &kp F5                &kp F6     &kp F7     &kp F8    &kp F9    &kp F10   &kp F11   &kp F12  
+                &kp GRAVE  &kp EXCL &kp AT  &kp HASH &kp DOLLAR &kp PRCNT           &kp CARET  &kp AMPS  &kp ASTRK &kp LPAR  &kp RPAR  &kp TILDE
+                &trans    &trans   &trans   &trans   &trans   &trans                &trans     &kp UNDER &kp EQUAL &kp LBKT  &kp RBKT  &kp BSLH 
+                &trans    &trans   &trans   &trans   &trans   &trans                &trans     &trans    &trans    &kp HOME  &kp PG_DN &kp PG_UP
             >;
             sensor-bindings = <&inc_dec_kp C_PREV C_NEXT>;
         };
@@ -64,13 +74,13 @@
         /* ─── Layer 2: Raise — Navigation & Numpad ───────────────────────*/
         raise_layer {
             bindings = <
-                &trans    &trans   &trans   &trans   &trans   &trans                &trans   &trans   &kp KP_N7 &kp KP_N8 &kp KP_N9 &kp KP_MINUS &trans
-                &trans    &trans   &trans   &trans   &trans   &trans                &trans   &trans   &kp KP_N4 &kp KP_N5 &kp KP_N6 &kp KP_PLUS  &trans
-                &trans    &trans   &trans   &trans   &trans   &trans                &trans   &trans   &kp KP_N1 &kp KP_N2 &kp KP_N3 &kp KP_ENTER &trans
-                &trans    &trans   &trans   &trans   &trans   &trans                &trans   &trans   &kp KP_N0 &trans    &kp KP_DOT &trans       &trans
-                &trans    &trans   &trans   &trans   &trans   &trans          &trans   &trans   &trans   &kp HOME &kp PG_DN &kp PG_UP &kp END
+                &trans    &trans   &trans   &trans   &trans   &trans                &trans   &trans   &kp KP_N7 &kp KP_N8   &kp KP_N9     &kp KP_MINUS
+                &kp GRAVE &kp N1    &kp N2   &kp N3   &kp N4   &kp N5               &kp N6     &kp N7   &kp N8    &kp N9    &kp N0     &trans
+                &trans    &trans   &trans   &trans   &trans   &trans                &trans   &kp LEFT &kp DOWN  &kp UP   &kp RIGHT     &kp KP_ENTER
+                &trans    &trans   &trans   &trans   &trans   &trans                &trans   &trans   &kp KP_N0 &trans      &kp KP_DOT    &trans     
+                &trans    &trans   &trans   &trans   &trans   &kp C_PLAY_PAUSE      &trans   &trans   &trans   &kp HOME &kp PG_DN &kp PG_UP &kp END
             >;
-            sensor-bindings = <&inc_dec_kp C_VOL_DN C_VOL_UP>;
+            sensor-bindings = <&inc_dec_kp C_PREV C_NEXT>;
         };
 
         /* ─── Layer 3: Adjust — BT & System (LOWER + RAISE) ─────────────*/
