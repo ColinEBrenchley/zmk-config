@@ -1,0 +1,7 @@
+
+boards/shields/cos2/
+
+.zmk/
+.zephyr/
+zephyr/
+build/

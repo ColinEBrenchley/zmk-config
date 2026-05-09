@@ -1,0 +1,88 @@
+/*
+ * Cosmos Keyboard - Right Half
+ * Board: nice!nano v2 (nRF52840)
+ * Matrix: 5 rows x 7 cols (right side)
+ * Split: BLE peripheral
+ */
+
+#include <dt-bindings/zmk/matrix_transform.h>
+#include "cosmos.dtsi"
+#include <dt-bindings/led/led.h>
+
+/ {
+    chosen {
+        zmk,kscan = &kscan0;
+        zmk,underglow = &led_strip;
+    };
+
+    kscan0: kscan {
+        compatible = "zmk,kscan-gpio-matrix";
+        diode-direction = "col2row";
+        #binding-cells = <0>;
+
+        /*
+         * nice!nano v2 pinout — Right Half
+         * Same physical pins, mirrored layout
+         * Rows: P0.31, P0.29, P0.02, P1.15, P1.13
+         * Cols: P0.10, P0.24, P1.00, P0.11, P1.04, P1.06, P0.09
+         */
+        row-gpios
+            = <&gpio0 31 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio0 29 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio0  2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio1 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio1 13 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            ;
+
+        col-gpios
+            = <&gpio0 10 GPIO_ACTIVE_HIGH>   /* col 6 → outermost */
+            , <&gpio1  6 GPIO_ACTIVE_HIGH>   /* col 1 */
+            , <&gpio1  4 GPIO_ACTIVE_HIGH>   /* col 2 */
+            , <&gpio0 11 GPIO_ACTIVE_HIGH>   /* col 3 */
+            , <&gpio1  0 GPIO_ACTIVE_HIGH>   /* col 4 */
+            , <&gpio0 24 GPIO_ACTIVE_HIGH>   /* col 5 */
+            , <&gpio0  9 GPIO_ACTIVE_HIGH>   /* col 0 → innermost (closest to center) */
+            ;
+    };
+};
+
+
+&default_transform {
+    col-offset = <7>;
+};
+
+&spi0 {
+    compatible = "nordic,nrf-spim";
+    status = "okay";
+    pinctrl-0 = <&spi0_default>;
+    pinctrl-1 = <&spi0_sleep>;
+    pinctrl-names = "default", "sleep";
+
+    led_strip: ws2812@0 {
+        compatible = "worldsemi,ws2812-spi";
+        reg = <0>;
+        spi-max-frequency = <4000000>;
+        chain-length = <2>;
+        spi-one-frame = <0x70>;
+        spi-zero-frame = <0x40>;
+        color-mapping = <LED_COLOR_ID_GREEN
+                         LED_COLOR_ID_RED
+                         LED_COLOR_ID_BLUE>;
+    };
+};
+
+&pinctrl {
+    spi0_default: spi0_default {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 0, 4)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 8)>;
+        };
+    };
+    spi0_sleep: spi0_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 0, 4)>,
+                    <NRF_PSEL(SPIM_MOSI, 0, 8)>;
+            low-power-enable;
+        };
+    };
+};
