@@ -13,6 +13,7 @@
     chosen {
         zmk,kscan = &kscan0;
         zmk,underglow = &led_strip;
+        zephyr,console = &cdc_acm_uart0;
     };
 
     kscan0: kscan {
@@ -68,6 +69,12 @@
         color-mapping = <LED_COLOR_ID_GREEN
                          LED_COLOR_ID_RED
                          LED_COLOR_ID_BLUE>;
+    };
+};
+
+&usbd {
+    cdc_acm_uart0: cdc_acm_uart0 {
+        compatible = "zephyr,cdc-acm-uart";
     };
 };
 
