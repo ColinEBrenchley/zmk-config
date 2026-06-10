@@ -1,6 +1,10 @@
 #include <dt-bindings/zmk/matrix_transform.h>
 #include <physical_layouts.dtsi>
 
+&default_layout {
+    transform = <&default_transform>;
+};
+
 / {
     chosen {
         zmk,physical-layout = &default_layout;
@@ -23,7 +27,6 @@
     default_layout: default_layout {
         compatible = "zmk,physical-layout";
         display-name = "Default";
-        transform = <&default_transform>;
 
         keys  //                     w   h    x    y     rot    rx    ry
             = <&key_physical_attrs 100 100    0   75       0     0     0>
