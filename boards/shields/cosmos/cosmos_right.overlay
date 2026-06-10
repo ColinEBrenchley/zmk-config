@@ -12,6 +12,7 @@
 / {
     chosen {
         zmk,kscan = &kscan0;
+        zmk,physical-layout = &default_layout;
         zmk,underglow = &led_strip;
         zephyr,console = &cdc_acm_uart0;
     };
@@ -28,22 +29,22 @@
          * Cols: P0.10, P0.24, P1.00, P0.11, P1.04, P1.06, P0.09
          */
         row-gpios
-            = <&gpio0 31 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            , <&gpio0 29 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            , <&gpio0  2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            , <&gpio1 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            , <&gpio1 13 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            ;
+        = <&gpio0 31 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+        , <&gpio0 29 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+        , <&gpio0  2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+        , <&gpio1 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+        , <&gpio1 13 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+        ;
 
         col-gpios
-            = <&gpio0 10 GPIO_ACTIVE_HIGH>   /* col 6 → outermost */
-            , <&gpio1  6 GPIO_ACTIVE_HIGH>   /* col 1 */
-            , <&gpio1  4 GPIO_ACTIVE_HIGH>   /* col 2 */
-            , <&gpio0 11 GPIO_ACTIVE_HIGH>   /* col 3 */
-            , <&gpio1  0 GPIO_ACTIVE_HIGH>   /* col 4 */
-            , <&gpio0 24 GPIO_ACTIVE_HIGH>   /* col 5 */
-            , <&gpio0  9 GPIO_ACTIVE_HIGH>   /* col 0 → innermost (closest to center) */
-            ;
+        = <&gpio0 10 GPIO_ACTIVE_HIGH>   /* col 6 → outermost */
+        , <&gpio1  6 GPIO_ACTIVE_HIGH>   /* col 1 */
+        , <&gpio1  4 GPIO_ACTIVE_HIGH>   /* col 2 */
+        , <&gpio0 11 GPIO_ACTIVE_HIGH>   /* col 3 */
+        , <&gpio1  0 GPIO_ACTIVE_HIGH>   /* col 4 */
+        , <&gpio0 24 GPIO_ACTIVE_HIGH>   /* col 5 */
+        , <&gpio0  9 GPIO_ACTIVE_HIGH>   /* col 0 → innermost (closest to center) */
+        ;
     };
 };
 
@@ -67,8 +68,8 @@
         spi-one-frame = <0x70>;
         spi-zero-frame = <0x40>;
         color-mapping = <LED_COLOR_ID_GREEN
-                         LED_COLOR_ID_RED
-                         LED_COLOR_ID_BLUE>;
+        LED_COLOR_ID_RED
+        LED_COLOR_ID_BLUE>;
     };
 };
 

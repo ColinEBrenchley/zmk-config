@@ -13,6 +13,7 @@
     chosen {
         zmk,kscan = &kscan0;
         zmk,matrix_transform = &default_transform;
+        zmk,physical-layout = &default_layout;
         zmk,sensors = &sensors;
         zmk,underglow = &led_strip;
         zephyr,console = &cdc_acm_uart0;
@@ -27,7 +28,7 @@
 
     encoder_left: encoder_left {
         compatible = "alps,ec11";
-        a-gpios = <&gpio0 17 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; 
+        a-gpios = <&gpio0 17 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
         b-gpios = <&gpio0 20 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
         steps = <80>;
     };
@@ -43,22 +44,22 @@
          * Cols: P0.22, P0.10, P1.00, P0.11, P1.04, P1.06, P0.09
          */
         row-gpios
-            = <&gpio0 29 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            , <&gpio0  2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            , <&gpio1 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            , <&gpio1 13 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            , <&gpio0 31 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            ;
+        = <&gpio0 29 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+        , <&gpio0  2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+        , <&gpio1 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+        , <&gpio1 13 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+        , <&gpio0 31 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+        ;
 
         col-gpios
-            = <&gpio0  9 GPIO_ACTIVE_HIGH>
-            , <&gpio1  6 GPIO_ACTIVE_HIGH>
-            , <&gpio1  4 GPIO_ACTIVE_HIGH>
-            , <&gpio0 11 GPIO_ACTIVE_HIGH>
-            , <&gpio1  0 GPIO_ACTIVE_HIGH>
-            , <&gpio0 24 GPIO_ACTIVE_HIGH>
-            , <&gpio0 10 GPIO_ACTIVE_HIGH>
-            ;
+        = <&gpio0  9 GPIO_ACTIVE_HIGH>
+        , <&gpio1  6 GPIO_ACTIVE_HIGH>
+        , <&gpio1  4 GPIO_ACTIVE_HIGH>
+        , <&gpio0 11 GPIO_ACTIVE_HIGH>
+        , <&gpio1  0 GPIO_ACTIVE_HIGH>
+        , <&gpio0 24 GPIO_ACTIVE_HIGH>
+        , <&gpio0 10 GPIO_ACTIVE_HIGH>
+        ;
     };
 };
 
@@ -78,8 +79,8 @@
         spi-one-frame = <0x70>;
         spi-zero-frame = <0x40>;
         color-mapping = <LED_COLOR_ID_GREEN
-                         LED_COLOR_ID_RED
-                         LED_COLOR_ID_BLUE>;
+        LED_COLOR_ID_RED
+        LED_COLOR_ID_BLUE>;
     };
 };
 
