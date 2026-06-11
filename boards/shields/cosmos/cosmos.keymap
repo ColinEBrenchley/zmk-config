@@ -17,68 +17,11 @@
 #define GAMING  4   // actual gaming layer
 #define GAMING_2 5    // to access other keys while gaming
 
+/* Include the combined behaviors file */
+#include "cosmos_behaviors.dtsi"
+
 / {
-    macros {
-        lower_mac: lower_mac {
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
-            display-name = "Lower";
-            bindings
-                = <&macro_press &mo LOWER>
-                , <&macro_tap &rgb_ug RGB_COLOR_HSB(240,100,50)>   /* blue for lower */
-                , <&macro_pause_for_release>
-                , <&macro_release &mo LOWER>
-                , <&macro_tap &rgb_ug RGB_COLOR_HSB(0,0,50)>       /* white back to base */
-                ;
-        };
-        raise_mac: raise_mac {
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
-            display-name = "Raise";
-            bindings
-                = <&macro_press &mo RAISE>
-                , <&macro_tap &rgb_ug RGB_COLOR_HSB(60,100,100)>   /* yellow for raise */
-                , <&macro_pause_for_release>
-                , <&macro_release &mo RAISE>
-                , <&macro_tap &rgb_ug RGB_COLOR_HSB(0,0,50)>       /* white back to base */
-                ;
-        };
-        gaming_on: gaming_on {
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
-            bindings
-                = <&tog GAMING>
-                , <&rgb_ug RGB_COLOR_HSB(280,100,50)>  /* purple */
-                ;
-        };
 
-        gaming_off: gaming_off {
-            compatible = "zmk,behavior-macro";
-            #binding-cells = <0>;
-            bindings
-                = <&tog GAMING>
-                , <&rgb_ug RGB_COLOR_HSB(0,0,50)>      /* white */
-                ;
-        };
-};
-
-combos {
-    compatible = "zmk,combos";
-
-    toggle_gaming_on {
-        timeout-ms = <100>;
-        key-positions = <0 11>;
-        bindings = <&gaming_on>;
-        layers = <BASE>;        /* only from base → enters gaming */
-    };
-
-    toggle_gaming_off {
-        timeout-ms = <100>;
-        key-positions = <0 11>;
-        bindings = <&gaming_off>;
-        layers = <GAMING GAMING_2>;      /* only from gaming → exits gaming */
-    };
-};
 
     conditional_layers {
         compatible = "zmk,conditional-layers";
