@@ -21,7 +21,7 @@
         display-name = "Default";
 
         
-        keys  //                     w   h    x    y     rot    rx    ry
+keys  //                     w   h    x    y     rot    rx    ry
             = <&key_physical_attrs 100 100    0   75       0     0     0>
             , <&key_physical_attrs 100 100  100   75       0     0     0>
             , <&key_physical_attrs 100 100  200   20       0     0     0>
@@ -72,16 +72,16 @@
             , <&key_physical_attrs 100 100 1450  375       0     0     0>
             , <&key_physical_attrs 100 100  200  420       0     0     0>
             , <&key_physical_attrs 100 100  300  400       0     0     0>
-            , <&key_physical_attrs 100 100  450  475     900   400   200>
-            , <&key_physical_attrs 100 125  550  455    1700   475   400>
-            , <&key_physical_attrs 100 100  650  475    3000   500   500>
-            , <&key_physical_attrs 100 100  550  605    1500   375   500>
+            , <&key_physical_attrs 100 100  420  500       0     0     0>
+            , <&key_physical_attrs 100 125  520  455       0     0     0>
+            , <&key_physical_attrs 100 100  620  500       0     0     0>
+            , <&key_physical_attrs 100 100  520  600       0     0     0>
             , <&key_physical_attrs 100 100 1150  400       0     0     0>
             , <&key_physical_attrs 100 100 1250  420       0     0     0>
-            , <&key_physical_attrs 100 100 1090  455  (-900)  1300  1000>
-            , <&key_physical_attrs 100 125 1000  455 (-1500)  1100   900>
-            , <&key_physical_attrs 100 100 1000  605 (-1700)  1150  1000>
-            , <&key_physical_attrs 100 100  900  475 (-3000)  1000   750>
+            , <&key_physical_attrs 100 100 1050  500       0     0     0>
+            , <&key_physical_attrs 100 125  950  455       0     0     0>
+            , <&key_physical_attrs 100 100  950  600       0     0     0>
+            , <&key_physical_attrs 100 100  850  500       0     0     0>
             ;
     };
 };
