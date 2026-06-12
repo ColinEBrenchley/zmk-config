@@ -45,6 +45,24 @@
                 , <&rgb_ug RGB_COLOR_HSB(0,0,50)>      /* white */
                 ;
         };
+        
+        gaming_2_on: gaming_2_on {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings
+                = <&tog GAMING_2>
+                , <&rgb_ug RGB_COLOR_HSB(10,100,50)>  /* red color */
+                ;
+        };
+
+        gaming_2_off: gaming_2_off {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings
+                = <&tog GAMING_2>
+                , <&rgb_ug RGB_COLOR_HSB(280,100,50)>  /* purple back to gaming */
+                ;
+        };
     };
 
     combos {

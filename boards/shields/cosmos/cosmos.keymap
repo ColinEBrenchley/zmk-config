@@ -113,7 +113,7 @@
                 &kp T     &kp TAB   &kp Q     &kp W     &kp E     &kp R              &trans    &trans    &trans    &trans    &trans    &trans
                 &kp G     &kp LSHFT &kp A     &kp S     &kp D     &kp F              &trans    &trans    &trans    &trans    &trans    &trans
                 &kp B     &kp LCTRL &kp Z     &kp X     &kp C     &kp V              &trans    &trans    &trans    &trans    &trans    &trans
-                &kp LALT  &kp LGUI  &tog GAMING_2 &kp SPACE &kp LSHFT &kp C_MUTE        &trans    &trans    &trans    &trans    &trans    &trans
+                &kp LALT  &kp LGUI  &gaming_2_on &kp SPACE &kp LSHFT &kp C_MUTE        &trans    &trans    &trans    &trans    &trans    &trans
             >;
             sensor-bindings = <&inc_dec_kp C_VOL_DN C_VOL_UP>;
         };
@@ -123,7 +123,7 @@
                 &kp TAB   &kp A     &kp W       &kp E     &kp R     &kp T              &kp Y     &kp U     &kp I      &kp O     &kp P     &kp MINUS     
                 &kp LSHFT &kp Q     &kp S       &kp D     &kp F     &kp G              &kp H     &kp J     &kp K      &kp L     &kp SEMI  &kp SQT    
                 &kp LCTRL &kp Z     &kp X       &kp C     &kp V     &kp B              &kp N     &kp M     &kp COMMA  &kp DOT   &kp FSLH  &kp RSHFT    
-                &kp LALT  &kp LGUI  &tog GAMING_2  &kp SPACE &kp RET   &kp C_MUTE         &kp LEFT  &kp RIGHT &raise_mac &kp RET   &kp RGUI  &kp RCTRL
+                &kp LALT  &kp LGUI  &gaming_2_off  &kp SPACE &kp RET   &kp C_MUTE         &kp LEFT  &kp RIGHT &raise_mac &kp RET   &kp RGUI  &kp RCTRL
             >;
             sensor-bindings = <&inc_dec_kp C_VOL_DN C_VOL_UP>;
         };
