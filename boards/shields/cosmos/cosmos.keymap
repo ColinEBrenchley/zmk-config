@@ -62,9 +62,9 @@
         lower_layer {
             bindings = <
                 &trans    &kp EXCL &kp F12  &kp F13  &kp F14 &kp F15                &trans     &kp CARET &kp AMPS  &kp STAR  &kp LPAR  &kp RPAR 
-                &kp GRAVE &kp F1   &kp F2   &kp F3   &kp F4   &kp F5                &kp F6     &kp F7     &kp F8    &kp F9    &kp F10   &kp F11     
-                &kp GRAVE  &kp EXCL &kp AT  &kp HASH &kp DOLLAR &kp PRCNT           &kp CARET  &kp AMPS  &kp ASTRK &kp LPAR  &kp RPAR  &kp TILDE
-                &rgb_ug RGB_ON    &rgb_ug RGB_COLOR_HSB(0,0,50)   &rgb_ug RGB_COLOR_HSB(240,100,50)   &rgb_ug RGB_COLOR_HSB(120,100,50)  &rgb_ug RGB_OFF    &trans                &trans     &kp UNDER &kp EQUAL &kp LBKT  &kp RBKT  &kp BSLH 
+                &kp CAPS &kp F1   &kp F2   &kp F3   &kp F4   &kp F5                &kp F6     &kp F7     &kp F8    &kp F9    &kp F10   &kp F11     
+                &trans   &kp EXCL &kp AT  &kp HASH &kp DOLLAR &kp PRCNT             &kp CARET  &kp AMPS  &kp ASTRK &kp LPAR  &kp RPAR  &kp TILDE
+                &trans    &trans   &trans   &trans   &trans   &trans                &kp PLUS   &kp MINUS  &kp EQUAL &kp LBKT  &kp RBKT  &kp BSLH 
                 &trans    &trans   &trans   &trans   &trans   &trans                &trans     &trans    &trans    &kp HOME  &kp PG_DN &kp PG_UP
             >;
             sensor-bindings = <&inc_dec_kp C_PREV C_NEXT>;
@@ -81,12 +81,13 @@
             >;
             sensor-bindings = <&inc_dec_kp C_PREV C_NEXT>;
         };
+        
 
         /* ─── Layer 3: Adjust — BT & System (LOWER + RAISE) ─────────────*/
         adjust_layer {
             bindings = <
                 &bootloader &trans       &trans           &trans         &trans           &trans                          &trans    &trans    &trans    &trans    &trans    &trans
-                &trans      &trans       &trans           &trans         &trans           &trans                          &trans    &trans    &trans    &trans    &trans    &trans
+                &trans      &trans       &rgb_ug RGB_ON   &rgb_ug RGB_OFF &trans           &trans                          &trans    &trans    &trans    &trans    &trans    &trans
                 &trans      &bt BT_SEL 0 &bt BT_SEL 1     &bt BT_SEL 2   &bt BT_SEL 3     &bt BT_SEL 4                    &trans    &trans    &trans    &trans    &trans    &trans
                 &trans      &trans       &studio_unlock   &studio_unlock &kp PRINTSCREEN  &trans                          &trans    &trans    &trans    &trans    &trans    &trans
                 &trans      &trans       &trans           &trans         &trans           &trans                          &trans    &trans    &trans    &trans    &trans    &trans
