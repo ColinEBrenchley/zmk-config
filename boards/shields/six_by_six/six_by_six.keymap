@@ -14,6 +14,7 @@
                 &kp LSHFT &kp Z    &kp X    &kp C    &kp V    &kp B
                 &kp LALT  &kp LGUI &kp LCTRL &kp SPACE &kp RALT &kp RGUI
                 &kp LEFT  &kp DOWN &kp UP   &kp RIGHT &kp BSPC &kp ENTER
+                &kp LEFT  &kp DOWN &kp UP   &kp RIGHT &kp BSPC &kp ENTER
             >;
         };
     };

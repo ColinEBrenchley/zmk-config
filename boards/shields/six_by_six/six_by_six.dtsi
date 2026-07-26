@@ -5,7 +5,7 @@
     default_transform: keymap_transform_0 {
         compatible = "zmk,matrix-transform";
         columns = <6>;
-        rows = <6>;
+        rows = <7>;
         status = "okay"; 
 
         map = <
@@ -15,6 +15,7 @@
             RC(3,0) RC(3,1) RC(3,2) RC(3,3) RC(3,4) RC(3,5)
             RC(4,0) RC(4,1) RC(4,2) RC(4,3) RC(4,4) RC(4,5)
             RC(5,0) RC(5,1) RC(5,2) RC(5,3) RC(5,4) RC(5,5)
+            RC(6,0) RC(6,1) RC(6,2) RC(6,3) RC(6,4) RC(6,5)
         >;
     };
 
@@ -58,7 +59,13 @@
              , <&key_physical_attrs 100 100 200 500   0   0   0>
              , <&key_physical_attrs 100 100 300 500   0   0   0>
              , <&key_physical_attrs 100 100 400 500   0   0   0>
-             , <&key_physical_attrs 100 100 500 500   0   0   0>;
+             , <&key_physical_attrs 100 100 500 500   0   0   0>
+             , <&key_physical_attrs 100 100   0 600   0   0   0>
+             , <&key_physical_attrs 100 100 100 600   0   0   0>
+             , <&key_physical_attrs 100 100 200 600   0   0   0>
+             , <&key_physical_attrs 100 100 300 600   0   0   0>
+             , <&key_physical_attrs 100 100 400 600   0   0   0>
+             , <&key_physical_attrs 100 100 500 600   0   0   0>;
     };
 };
 
