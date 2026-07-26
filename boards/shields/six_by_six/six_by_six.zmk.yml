@@ -1,0 +1,13 @@
+file_format: "1"
+id: six_by_six
+name: 6x6 Keyboard
+type: shield
+
+url: https://example.com
+
+features:
+  - keys
+  - studio
+
+requires:
+  - pro_micro
