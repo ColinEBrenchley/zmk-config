@@ -2,14 +2,71 @@
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/rgb.h>
 
+
+
 / {
+    behaviors {
+        a_ctrl: a_ctrl {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            tapping-term-ms = <200>;
+            bindings = <&kp>, <&kp>;
+        };
+    };
+
     macros {
         swapper: swapper {
             compatible = "zmk,behavior-tri-state";
             label = "SWAPPER";
             #binding-cells = <0>;
             bindings = <&kt LALT>, <&kp TAB>, <&kt LALT>;
-            ignored-layers = <NAV>;
+            ignored-layers = <NUM>;
+        };
+
+        copy: copy {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings =
+                <&macro_press &kp LCTRL>,
+                <&macro_tap &kp C>,
+                <&macro_release &kp LCTRL>;
+        };
+
+        paste: paste {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings =
+                <&macro_press &kp LCTRL>,
+                <&macro_tap &kp V>,
+                <&macro_release &kp LCTRL>;
+        };
+
+        cut: cut {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings =
+                <&macro_press &kp LCTRL>,
+                <&macro_tap &kp X>,
+                <&macro_release &kp LCTRL>;
+        };
+
+        undo: undo {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings =
+                <&macro_press &kp LCTRL>,
+                <&macro_tap &kp Z>,
+                <&macro_release &kp LCTRL>;
+        };
+
+        redo: redo {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings =
+                <&macro_press &kp LCTRL>,
+                <&macro_tap &kp Y>,
+                <&macro_release &kp LCTRL>;
         };
     };
 
@@ -28,6 +85,13 @@
             key-positions = <0 9>;
             bindings = <&to BASE>;
             layers = <GAMING>;
+        };
+
+        combo_2 {
+            timeout-ms = <100>;
+            key-positions = <1 2>;
+            bindings = <&kp N2>;
+            layers = <NUM>;
         };
     };
 };
