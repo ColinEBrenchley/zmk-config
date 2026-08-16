@@ -8,6 +8,8 @@ manifest:
       url-base: https://github.com/zzeneg
     - name: srwi # <-- required for KeyPeek module
       url-base: https://github.com/srwi
+    - name: dhruvinsh
+      url-base: https://github.com/dhruvinsh
   projects:
     - name: zmk
       remote: zmkfirmware
@@ -20,6 +22,9 @@ manifest:
     - name: zmk-keypeek-layer-notifier # <-- KeyPeek module
       remote: srwi
       revision: master
+    - name: zmk-tri-state
+      remote: dhruvinsh
+      revision: main
   self:
     path: config
     path: config

@@ -28,16 +28,16 @@
             &kp Q     &kp W       &kp E       &kp R       &kp T              &kp Y       &kp U     &kp I      &kp O     &kp P   
             &kp A     &kp S       &kp D       &kp F       &kp G              &kp H       &kp J     &kp K      &kp L     
             &kp Z     &kp X       &kp C       &kp V       &kp B              &kp N       &kp M     &kp COMMA  &kp DOT   &kp FSLH
-                                  &kp LSHFT   &mo NAV      &kp SPACE         &kp ENTER   &mo NUM  &kp LALT  
+                                  &kp LSHFT   &mo NAV      &kp SPACE         &kp ENTER   &mo NUM  &kp RSHFT  
             >;
         };
 
         nav_layer {
             bindings = <
-            &kp ESC     &kp W       &kp E       &kp R       &kp T              &kp Y     &kp U     &kp I      &kp O     &kp BSPC   
+            &swapper    &kp W       &kp E       &kp R       &kp T              &kp Y     &kp U     &kp I      &kp O     &kp BSPC   
             &kp TAB     &kp S       &kp D       &kp F       &kp G              &kp LEFT  &kp DOWN  &kp UP     &kp RIGHT     
             &kp LCTL    &kp X       &kp C       &kp V       &kp B              &kp N     &kp M     &kp COMMA  &kp DOT   &kp FSLH
-            &kp LSHFT               &mo NAV                  &kp SPACE          &kp ENTER           &mo NUM               &kp LALT  
+            &kp LSHFT               &mo NAV                  &kp SPACE          &kp ENTER           &mo NUM               &kp RSHFT  
             >;
         };
 
@@ -46,7 +46,7 @@
             &kp N1      &kp N2      &kp N3      &kp N4      &kp N5             &kp N6    &kp N7    &kp N8     &kp N9    &kp N0  
             &kp EXCL    &kp AT      &kp HASH    &kp DLLR    &kp PRCNT          &kp CARET &kp AMPS  &kp ASTRK  &kp LPAR  &kp RPAR      
             &kp LCTL    &kp X       &kp C       &kp V       &kp B              &kp N     &kp M     &kp COMMA  &kp DOT   &kp FSLH
-            &kp LSHFT               &mo NAV                  &kp SPACE          &kp ENTER           &mo NUM               &kp LALT  
+            &kp LSHFT               &mo NAV                  &kp SPACE          &kp ENTER           &mo NUM               &kp RSHFT  
             >;
         };
 
