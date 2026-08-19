@@ -2,11 +2,11 @@
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
 
-#define BASE 0
-#define NAV  1
-#define NUM  2
-#define ADJUST 3
-#define GAMING 4
+#define BASE   0
+#define GAMING 1
+#define NAV    2
+#define NUM    3
+#define ADJUST 4
 
 /* Include the combined behaviors file */
 #include "6x6_behaviors.dtsi"
@@ -25,47 +25,48 @@
 
         base_layer {
             bindings = <
-            &kp Q           &kp W       &kp E       &kp R       &kp T              &kp Y           &kp U      &kp I      &kp O     &kp P   
-            &a_ctrl LCTL A  &kp S       &kp D       &kp F       &kp G              &kp H           &kp J      &kp K      &kp L     
-            &kp Z           &kp X       &kp C       &kp V       &kp B              &kp N           &kp M      &kp COMMA  &kp DOT   &kp FSLH
-                                        &kp LSHFT   &mo NUM     &kp SPACE          &lt NAV ENTER   &kp BSPC   &kp RSHFT  
+            &kp Q           &kp W       &kp E       &kp R         &kp T              &kp Y           &kp U        &kp I      &kp O     &kp P   
+            &a_ctrl LCTL A  &kp S       &kp D       &kp F         &kp G              &kp H           &kp J        &kp K      &kp L     
+            &kp Z           &kp X       &kp C       &kp V         &kp B              &kp N           &kp M        &kp COMMA  &kp DOT   &kp FSLH
+                                        &kp LSHFT   &lt NUM LGUI  &kp SPACE          &lt NAV ENTER   &lt NAV BSPC &kp RSHFT  
             >;
+        };
+
+        gaming_layer {
+            bindings = <
+            &kp TAB    &kp Q     &kp W        &kp E       &kp R                    &kp Y           &kp U     &kp I      &kp O     &kp P   
+            &kp LCTL    &kp A     &kp S       &kp D       &kp F                    &kp H           &kp J     &kp K      &kp L     
+            &kp LSHFT   &kp Z     &kp X       &kp C       &kp V                    &kp N           &kp M     &kp COMMA  &kp DOT   &kp FSLH
+                                  &kp ESC     &mo NUM     &kp SPACE                &lt NAV ENTER   &lt NAV BSPC       &kp LALT  
+            >;   
         };
 
         nav_layer {
             bindings = <
-            &kp Q        &kp W       &kp E       &kp R       &kp T              &kp Y      &kp PAGE_DOWN  &kp UP      &kp PAGE_UP    &kp BSPC   
+            &kp Q            &kp W       &kp E       &kp R       &kp T              &kp Y      &kp PAGE_DOWN  &kp UP      &kp PAGE_UP    &kp BSPC   
             &a_ctrl LCTL TAB &kp S       &kp D       &kp F       &kp G              &kp SQT    &kp LEFT       &kp DOWN    &kp RIGHT
-            &kp LCTL     &kp X       &kp C       &kp V       &kp B              &kp N      &undo          &redo       &kp DOT        &kp FSLH
-                                     &kp LSHFT   &mo NUM     &kp SPACE          &kp ENTER  &mo NAV        &kp RSHFT  
+            &kp LCTL         &cut        &copy       &paste      &kp B              &kp N      &undo          &redo       &kp DOT        &kp FSLH
+                                         &kp LSHFT   &mo NUM     &kp SPACE          &kp ENTER  &mo NAV        &kp RSHFT  
             >;
         };
 
         num_layer {
             bindings = <
-            &swapper      &kp N1      &kp N3      &kp N4      &kp N5             &kp N6    &kp N7    &kp N8     &kp N9    &kp N0  
-            &a_ctrl LCTL EXCL &kp AT      &kp HASH    &kp DLLR    &kp PRCNT          &kp CARET &kp AMPS  &kp ASTRK  &kp LPAR        
-            &kp LCTL      &kp X       &kp C       &kp V       &kp B              &kp N     &kp M     &kp COMMA  &kp DOT   &kp FSLH
-                                      &kp LSHFT   &mo NUM     &kp SPACE          &trans    &kp ENTER &kp RSHFT
+            &swapper          &kp N1      &kp N3      &kp N4      &kp N5             &kp N6    &kp N7    &kp N8     &kp N9    &kp N0  
+            &a_ctrl LCTL EXCL &kp AT      &kp HASH    &kp DLLR    &kp PRCNT          &kp CARET &kp AMPS  &kp ASTRK  &kp MINUS        
+            &kp LCTL          &kp X       &kp C       &kp V       &kp B              &kp N     &kp M     &kp COMMA  &kp DOT   &kp FSLH
+                                          &kp LSHFT   &mo NUM     &kp SPACE          &trans    &trans    &kp RSHFT
             >;
         };
 
         adjust_layer {
             bindings = <
-            &kp ESC  &bt BT_CLR  &bt BT_SEL 0  &bt BT_SEL 1   &bt BT_SEL 2               &kp N6       &kp N7        &kp N8          &kp PRINTSCREEN  &bootloader 
-            &kp F1   &kp F2      &kp F3        &kp F4         &kp F5                     &kp F6       &kp F7        &kp F8        &kp F9               
-            &kp F10  &cut        &copy         &paste         &kp F11                    &kp F12      &kp M         &kp COMMA       &kp DOT          &kp FSLH
-            &kp LSHFT                 &mo NUM                 &kp SPACE             &kp ENTER                  &mo NAV                          &kp LALT  
-            >;   
-        };
-
-        gaming_layer {
-            bindings = <
-            &kp ESC    &kp Q     &kp W       &kp E       &kp R                   &kp Y       &kp U     &kp I      &kp O     &kp P   
-            &kp TAB    &kp A     &kp S       &kp D       &kp F                   &kp H       &kp J     &kp K      &kp L     
-            &kp LCTL   &kp Z     &kp X       &kp C       &kp V                   &kp N       &kp M     &kp COMMA  &kp DOT   &kp FSLH
-            &kp LSHFT            &mo NUM                 &kp SPACE               &kp ENTER             &mo NAV              &kp LALT  
+            &kp ESC    &bt BT_CLR  &bt BT_SEL 0  &bt BT_SEL 1   &bt BT_SEL 2               &kp N6       &kp N7        &kp N8          &kp PRINTSCREEN  &bootloader 
+            &kp F1     &kp F2      &kp F3        &kp F4         &kp F5                     &kp F6       &kp F7        &kp F8        &kp F9               
+            &kp F10    &cut        &copy         &paste         &kp F11                    &kp F12      &kp M         &kp COMMA       &kp DOT          &kp FSLH
+                                   &kp LSHFT  &mo NUM  &kp SPACE                           &kp ENTER    &mo NAV       &kp LALT  
             >;   
         };
     };
 };
+            
