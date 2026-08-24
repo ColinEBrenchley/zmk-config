@@ -1,0 +1,2 @@
+config SHIELD_SIX_BY_SIX
+    def_bool $(shields_list_contains,six_by_six)

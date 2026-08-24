@@ -1,0 +1,6 @@
+if SHIELD_SIX_BY_SIX
+
+config ZMK_KEYBOARD_NAME
+    default "6x6 Keyboard"
+
+endif # SHIELD_SIX_BY_SIX
