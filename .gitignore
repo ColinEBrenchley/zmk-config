@@ -5,3 +5,8 @@ boards/shields/cos2/
 .zephyr/
 zephyr/
 build/
+
+# Ignore the virtual environment folder
+venv/
+.venv/
+env/
