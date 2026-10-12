@@ -1,0 +1,42 @@
+/*
+ * LED effect behaviors (implemented in src/led_fx.c + src/behavior_led_fx.c).
+ * The numbers below MUST match enum led_fx_cmd in src/led_fx.h.
+ *
+ *   &fx FX_RED       solid red (default)
+ *   &fx FX_ALERT     flashing blue; press again to return to red
+ *   &fx FX_CHASE     red base with a bright pulse running along the strip
+ *   &fx FX_BREATHE   slow red breathing
+ *   &fx FX_SCANNER   red eye bouncing back and forth
+ *   &fx FX_OFF       LEDs off
+ *   &fx FX_SWEEP     one-shot blue-white pulse across the strip, then back to the current effect
+ *   &fx FX_NEXT      cycle to the next effect
+ *   &fx FX_BRI_UP / FX_BRI_DN   brightness (the encoder wrapper below uses these)
+ */
+
+#define FX_RED     0
+#define FX_ALERT   1
+#define FX_CHASE   2
+#define FX_BREATHE 3
+#define FX_SCANNER 4
+#define FX_OFF     5
+#define FX_SWEEP   6
+#define FX_NEXT    7
+#define FX_BRI_UP  8
+#define FX_BRI_DN  9
+
+/ {
+	behaviors {
+		fx: led_fx {
+			compatible = "zmk,behavior-led-fx";
+			#binding-cells = <1>;
+			display-name = "LED FX";
+		};
+
+		/* Encoder-friendly brightness: clockwise = up, counter-clockwise = down */
+		fx_bri: fx_bri {
+			compatible = "zmk,behavior-sensor-rotate";
+			#sensor-binding-cells = <0>;
+			bindings = <&fx FX_BRI_UP>, <&fx FX_BRI_DN>;
+		};
+	};
+};
