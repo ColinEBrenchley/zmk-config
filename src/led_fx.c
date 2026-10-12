@@ -1,0 +1,258 @@
+/*
+ * Custom WS2812 effects: red default, flashing blue alert, chase pulse,
+ * breathing, scanner, and a one-shot sweep overlay.
+ *
+ * Drives the strip behind the `zmk,underglow` chosen node directly, so
+ * CONFIG_ZMK_RGB_UNDERGLOW must be disabled.
+ */
+
+#include <string.h>
+
+#include <zephyr/device.h>
+#include <zephyr/drivers/led_strip.h>
+#include <zephyr/init.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+
+#include <zmk/event_manager.h>
+#include <zmk/events/position_state_changed.h>
+
+#include "led_fx.h"
+
+LOG_MODULE_REGISTER(led_fx, CONFIG_ZMK_LOG_LEVEL);
+
+#define STRIP_NODE DT_CHOSEN(zmk_underglow)
+#define NUM_LEDS DT_PROP(STRIP_NODE, chain_length)
+
+#define TICK_MS 30
+#define BRI_STEP 5
+#define BRI_MIN 5
+#define TAIL 5 /* head + 4 trailing LEDs */
+
+enum fx_mode {
+    MODE_RED,
+    MODE_ALERT,
+    MODE_CHASE,
+    MODE_BREATHE,
+    MODE_SCANNER,
+    MODE_OFF,
+    MODE_COUNT,
+};
+
+static const struct device *strip = DEVICE_DT_GET(STRIP_NODE);
+static struct led_rgb px[NUM_LEDS];
+static struct k_work_delayable tick_work;
+
+static volatile uint8_t mode = MODE_RED;
+static volatile uint8_t bri = CONFIG_LED_FX_DEFAULT_BRIGHTNESS; /* percent */
+static volatile int32_t sweep_t = -1;                           /* -1 = inactive */
+static uint32_t ticks;
+
+static const uint8_t trail[TAIL] = {255, 110, 48, 20, 8};
+
+static inline uint8_t sc(uint8_t v) { return ((uint16_t)v * bri) / 100; }
+
+static inline void set_px(int i, uint8_t r, uint8_t g, uint8_t b) {
+    if (i < 0 || i >= NUM_LEDS) {
+        return;
+    }
+    px[i].r = r;
+    px[i].g = g;
+    px[i].b = b;
+}
+
+static inline void max_px(int i, uint8_t r, uint8_t g, uint8_t b) {
+    if (i < 0 || i >= NUM_LEDS) {
+        return;
+    }
+    px[i].r = MAX(px[i].r, r);
+    px[i].g = MAX(px[i].g, g);
+    px[i].b = MAX(px[i].b, b);
+}
+
+static inline uint8_t sat_add(uint8_t a, uint8_t b) {
+    uint16_t s = (uint16_t)a + b;
+    return s > 255 ? 255 : s;
+}
+
+static inline void add_px(int i, uint8_t r, uint8_t g, uint8_t b) {
+    if (i < 0 || i >= NUM_LEDS) {
+        return;
+    }
+    px[i].r = sat_add(px[i].r, r);
+    px[i].g = sat_add(px[i].g, g);
+    px[i].b = sat_add(px[i].b, b);
+}
+
+static void render(void) {
+    memset(px, 0, sizeof(px));
+
+    switch (mode) {
+    case MODE_RED:
+        for (int i = 0; i < NUM_LEDS; i++) {
+            set_px(i, sc(255), 0, 0);
+        }
+        break;
+
+    case MODE_ALERT: {
+        bool on = ((ticks / 8) % 2) == 0; /* ~240 ms on / 240 ms off */
+        for (int i = 0; i < NUM_LEDS; i++) {
+            if (on) {
+                set_px(i, 0, 0, sc(255));
+            } else {
+                set_px(i, sc(255) / 8, 0, 0); /* dim red between flashes */
+            }
+        }
+        break;
+    }
+
+    case MODE_CHASE: {
+        int head = (ticks / 3) % (NUM_LEDS + TAIL); /* ~90 ms per LED */
+        for (int i = 0; i < NUM_LEDS; i++) {
+            set_px(i, sc(255) / 5, 0, 0);
+        }
+        for (int t = 0; t < TAIL; t++) {
+            uint8_t lvl = sc(trail[t]);
+            /* head glows whiter, tail is pure red */
+            max_px(head - t, lvl, t == 0 ? lvl / 2 : 0, t == 0 ? lvl / 2 : 0);
+        }
+        break;
+    }
+
+    case MODE_BREATHE: {
+        uint32_t p = (ticks * 2) % 128;
+        uint32_t tri = p < 64 ? p * 4 : (127 - p) * 4; /* 0..252 */
+        uint32_t v = (tri * tri) / 255;                /* ease */
+        v = 10 + (v * 245) / 255;
+        for (int i = 0; i < NUM_LEDS; i++) {
+            set_px(i, sc(v), 0, 0);
+        }
+        break;
+    }
+
+    case MODE_SCANNER: {
+        int span = NUM_LEDS - 1;
+        int period = 2 * span;
+        int pos = (ticks / 2) % period;
+        if (pos > span) {
+            pos = period - pos;
+        }
+        for (int i = 0; i < NUM_LEDS; i++) {
+            set_px(i, sc(255) / 16, 0, 0);
+        }
+        max_px(pos, sc(255), 0, 0);
+        max_px(pos - 1, sc(80), 0, 0);
+        max_px(pos + 1, sc(80), 0, 0);
+        max_px(pos - 2, sc(16), 0, 0);
+        max_px(pos + 2, sc(16), 0, 0);
+        break;
+    }
+
+    default: /* MODE_OFF */
+        break;
+    }
+
+    /* One-shot sweep overlay: blue-white pulse, 2 ticks (~60 ms) per LED */
+    if (sweep_t >= 0 && mode != MODE_OFF) {
+        int head = sweep_t / 2;
+        for (int t = 0; t < TAIL; t++) {
+            uint8_t lvl = sc(trail[t]);
+            add_px(head - t, lvl / 2, lvl / 2, lvl);
+        }
+        sweep_t++;
+        if ((sweep_t / 2) - (TAIL - 1) >= NUM_LEDS) {
+            sweep_t = -1;
+        }
+    } else if (mode == MODE_OFF) {
+        sweep_t = -1;
+    }
+}
+
+static void tick(struct k_work *work) {
+    ticks++;
+    render();
+
+    int rc = led_strip_update_rgb(strip, px, NUM_LEDS);
+    if (rc) {
+        LOG_ERR("led_strip_update_rgb failed: %d", rc);
+    }
+
+    k_work_reschedule(&tick_work, K_MSEC(TICK_MS));
+}
+
+void led_fx_trigger_sweep(void) {
+    sweep_t = 0;
+    k_work_reschedule(&tick_work, K_NO_WAIT);
+}
+
+int led_fx_command(uint32_t cmd) {
+    switch (cmd) {
+    case LED_FX_CMD_RED:
+    case LED_FX_CMD_CHASE:
+    case LED_FX_CMD_BREATHE:
+    case LED_FX_CMD_SCANNER:
+    case LED_FX_CMD_OFF:
+        mode = (uint8_t)cmd; /* enum fx_mode values match the command ids */
+        ticks = 0;
+        break;
+
+    case LED_FX_CMD_ALERT:
+        /* toggle: alert <-> default red */
+        mode = (mode == MODE_ALERT) ? MODE_RED : MODE_ALERT;
+        ticks = 0;
+        break;
+
+    case LED_FX_CMD_SWEEP:
+        led_fx_trigger_sweep();
+        return 0;
+
+    case LED_FX_CMD_NEXT:
+        mode = (mode + 1) % MODE_COUNT;
+        ticks = 0;
+        break;
+
+    case LED_FX_CMD_BRI_UP:
+        bri = MIN(bri + BRI_STEP, CONFIG_LED_FX_MAX_BRIGHTNESS);
+        break;
+
+    case LED_FX_CMD_BRI_DN:
+        bri = (bri > BRI_MIN + BRI_STEP) ? bri - BRI_STEP : BRI_MIN;
+        break;
+
+    default:
+        return -EINVAL;
+    }
+
+    k_work_reschedule(&tick_work, K_NO_WAIT); /* show the change immediately */
+    return 0;
+}
+
+#if IS_ENABLED(CONFIG_LED_FX_SWEEP_ON_KEYPRESS)
+static int led_fx_position_listener(const zmk_event_t *eh) {
+    const struct zmk_position_state_changed *ev = as_zmk_position_state_changed(eh);
+    if (ev != NULL && ev->state) {
+        led_fx_trigger_sweep();
+    }
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+ZMK_LISTENER(led_fx, led_fx_position_listener);
+ZMK_SUBSCRIPTION(led_fx, zmk_position_state_changed);
+#endif
+
+static int led_fx_init(void) {
+    if (!device_is_ready(strip)) {
+        LOG_ERR("LED strip device not ready");
+        return -ENODEV;
+    }
+
+    if (bri > CONFIG_LED_FX_MAX_BRIGHTNESS) {
+        bri = CONFIG_LED_FX_MAX_BRIGHTNESS;
+    }
+
+    k_work_init_delayable(&tick_work, tick);
+    k_work_schedule(&tick_work, K_MSEC(100));
+    return 0;
+}
+
+SYS_INIT(led_fx_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
