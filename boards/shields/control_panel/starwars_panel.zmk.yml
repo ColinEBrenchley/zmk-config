@@ -1,0 +1,10 @@
+file_format: "1"
+id: starwars_panel
+name: Star Wars Panel
+type: shield
+url: https://github.com/<your-user>/zmk-config
+requires: [pro_micro]
+exposes: []
+features:
+  - keys
+  - encoder
