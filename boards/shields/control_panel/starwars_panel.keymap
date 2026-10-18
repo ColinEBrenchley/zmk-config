@@ -45,14 +45,14 @@
 		base_layer {
 			display-name = "Base";
 			bindings = <
-				&kp N1   &kp N2   &kp N3   &kp N4   &kp N5   &kp N6   &kp N7   &kp N8   &kp N9
-				&kp F13  &kp F14  &kp F15  &kp F16
-				&fx FX_ALERT  &fx FX_SWEEP
-				&kp F17  &kp F18
-				&kp F19  &kp F20
-				&kp F21  &kp F22  &kp F23  &kp F24
-				&fx FX_NEXT   &kp F12
-				&mo 1  &mo 2  &mo 3
+				&kp A  &kp B  &kp C  &kp D  &kp E  &kp F  &kp G  &kp H  &kp I
+				&kp J  &kp K  &kp L  &kp M
+				&kp N  &kp O
+				&kp P  &kp Q
+				&kp R  &kp S
+				&kp T  &kp U  &kp V  &kp W
+				&kp X  &kp Y
+				&kp Z  &kp SPACE  &kp RET
 			>;
 
 			sensor-bindings = <
