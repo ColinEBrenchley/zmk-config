@@ -28,6 +28,7 @@ LOG_MODULE_REGISTER(led_fx, CONFIG_ZMK_LOG_LEVEL);
 #define BRI_STEP 5
 #define BRI_MIN 5
 #define TAIL 5 /* head + 4 trailing LEDs */
+#define ANIMATION_LED_COUNT 10
 
 enum fx_mode {
     MODE_SOLID,
@@ -45,6 +46,11 @@ static const enum fx_mode random_modes[] = {
     MODE_CHASE,
     MODE_BREATHE,
     MODE_SCANNER,
+};
+
+/* Follow physical LEDs 4,3,2,1,5,6,7,8,9,10; LEDs 11-12 are auxiliary. */
+static const uint8_t animation_path[ANIMATION_LED_COUNT] = {
+    3, 2, 1, 0, 4, 5, 6, 7, 8, 9,
 };
 
 static const struct device *strip = DEVICE_DT_GET(STRIP_NODE);
@@ -92,6 +98,12 @@ static inline void set_px(int i, uint8_t r, uint8_t g, uint8_t b) {
     px[i].b = b;
 }
 
+static inline void set_path_px(int position, uint8_t r, uint8_t g, uint8_t b) {
+    if (position >= 0 && position < ANIMATION_LED_COUNT) {
+        set_px(animation_path[position], r, g, b);
+    }
+}
+
 static inline void max_px(int i, uint8_t r, uint8_t g, uint8_t b) {
     if (i < 0 || i >= NUM_LEDS) {
         return;
@@ -99,6 +111,12 @@ static inline void max_px(int i, uint8_t r, uint8_t g, uint8_t b) {
     px[i].r = MAX(px[i].r, r);
     px[i].g = MAX(px[i].g, g);
     px[i].b = MAX(px[i].b, b);
+}
+
+static inline void max_path_px(int position, uint8_t r, uint8_t g, uint8_t b) {
+    if (position >= 0 && position < ANIMATION_LED_COUNT) {
+        max_px(animation_path[position], r, g, b);
+    }
 }
 
 static inline uint8_t sat_add(uint8_t a, uint8_t b) {
@@ -113,6 +131,27 @@ static inline void add_px(int i, uint8_t r, uint8_t g, uint8_t b) {
     px[i].r = sat_add(px[i].r, r);
     px[i].g = sat_add(px[i].g, g);
     px[i].b = sat_add(px[i].b, b);
+}
+
+static inline void add_path_px(int position, uint8_t r, uint8_t g, uint8_t b) {
+    if (position >= 0 && position < ANIMATION_LED_COUNT) {
+        add_px(animation_path[position], r, g, b);
+    }
+}
+
+static uint8_t breathe_level(void) {
+    uint32_t p = (ticks * 2) % 128;
+    uint32_t tri = p < 64 ? p * 4 : (127 - p) * 4;
+    uint32_t v = (tri * tri) / 255;
+    return 10 + (v * 245) / 255;
+}
+
+static void render_auxiliary_breathe(void) {
+    uint8_t level = breathe_level();
+    for (int i = ANIMATION_LED_COUNT; i < NUM_LEDS; i++) {
+        uint8_t brightness = sc(level);
+        set_px(i, brightness, brightness, brightness);
+    }
 }
 
 static void render(void) {
@@ -138,23 +177,21 @@ static void render(void) {
     }
 
     case MODE_CHASE: {
-        int head = (ticks / 3) % (NUM_LEDS + TAIL); /* ~90 ms per LED */
-        for (int i = 0; i < NUM_LEDS; i++) {
-            set_px(i, color_r(255) / 5, color_g(255) / 5, 0);
+        int head = (ticks / 3) % (ANIMATION_LED_COUNT + TAIL); /* ~90 ms per LED */
+        for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
+            set_path_px(i, color_r(255) / 5, color_g(255) / 5, 0);
         }
         for (int t = 0; t < TAIL; t++) {
             uint8_t lvl = sc(trail[t]);
-            max_px(head - t, color_r(trail[t]), color_g(trail[t]),
-                   t == 0 ? lvl / 2 : 0);
+            max_path_px(head - t, color_r(trail[t]), color_g(trail[t]),
+                        t == 0 ? lvl / 2 : 0);
         }
+        render_auxiliary_breathe();
         break;
     }
 
     case MODE_BREATHE: {
-        uint32_t p = (ticks * 2) % 128;
-        uint32_t tri = p < 64 ? p * 4 : (127 - p) * 4; /* 0..252 */
-        uint32_t v = (tri * tri) / 255;                /* ease */
-        v = 10 + (v * 245) / 255;
+        uint8_t v = breathe_level();
         for (int i = 0; i < NUM_LEDS; i++) {
             set_px(i, color_r(v), color_g(v), 0);
         }
@@ -162,20 +199,21 @@ static void render(void) {
     }
 
     case MODE_SCANNER: {
-        int span = NUM_LEDS - 1;
+        int span = ANIMATION_LED_COUNT - 1;
         int period = 2 * span;
         int pos = (ticks / 2) % period;
         if (pos > span) {
             pos = period - pos;
         }
-        for (int i = 0; i < NUM_LEDS; i++) {
-            set_px(i, color_r(255) / 16, color_g(255) / 16, 0);
+        for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
+            set_path_px(i, color_r(255) / 16, color_g(255) / 16, 0);
         }
-        max_px(pos, color_r(255), color_g(255), 0);
-        max_px(pos - 1, color_r(80), color_g(80), 0);
-        max_px(pos + 1, color_r(80), color_g(80), 0);
-        max_px(pos - 2, color_r(16), color_g(16), 0);
-        max_px(pos + 2, color_r(16), color_g(16), 0);
+        max_path_px(pos, color_r(255), color_g(255), 0);
+        max_path_px(pos - 1, color_r(80), color_g(80), 0);
+        max_path_px(pos + 1, color_r(80), color_g(80), 0);
+        max_path_px(pos - 2, color_r(16), color_g(16), 0);
+        max_path_px(pos + 2, color_r(16), color_g(16), 0);
+        render_auxiliary_breathe();
         break;
     }
 
@@ -188,11 +226,12 @@ static void render(void) {
         int head = sweep_t / 2;
         for (int t = 0; t < TAIL; t++) {
             uint8_t lvl = sc(trail[t]);
-            add_px(head - t, color_r(trail[t]), color_g(trail[t]),
-                   t == 0 ? lvl / 2 : 0);
+            add_path_px(head - t, color_r(trail[t]), color_g(trail[t]),
+                        t == 0 ? lvl / 2 : 0);
         }
+        render_auxiliary_breathe();
         sweep_t++;
-        if ((sweep_t / 2) - (TAIL - 1) >= NUM_LEDS) {
+        if ((sweep_t / 2) - (TAIL - 1) >= ANIMATION_LED_COUNT) {
             sweep_t = -1;
         }
     } else if (mode == MODE_OFF) {
@@ -201,11 +240,12 @@ static void render(void) {
 
     /* One-shot dark pulse: each LED goes dark briefly, then resumes its mode. */
     if (wave_t >= 0 && mode != MODE_OFF) {
-        set_px(wave_t / 2, 0, 0, 0);
+        set_path_px(wave_t / 2, 0, 0, 0);
         wave_t++;
-        if (wave_t / 2 >= NUM_LEDS) {
+        if (wave_t / 2 >= ANIMATION_LED_COUNT) {
             wave_t = -1;
         }
+        render_auxiliary_breathe();
     } else if (mode == MODE_OFF) {
         wave_t = -1;
     }
