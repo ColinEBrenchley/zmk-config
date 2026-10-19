@@ -27,6 +27,16 @@
  * Everything except 1-9 and the LED/switch keys is a placeholder: change freely.
  */
 / {
+	combos {
+		compatible = "zmk,combos";
+
+		bootloader_combo {
+			timeout-ms = <100>;
+			key-positions = <9 15 16 22>;
+			bindings = <&bootloader>;
+		};
+	};
+
 	/* Extra layer that only turns on for a switch combination.
 	 * Its index must be higher than the layers in if-layers so it wins.
 	 * Copy the block for more combos (A+C, B+C, A+B+C). */
@@ -51,7 +61,7 @@
 				&kp N1  &kp N2  &kp N3  &kp RET  
 					&kp N0  	&kp PERIOD
 				
-				&kp B  &kp C
+				&b_wave  &kp C
 				&kp S  &kp N  
 				&kp T  &kp U  &kp V  &kp W  
 				

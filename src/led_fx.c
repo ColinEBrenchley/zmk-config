@@ -1,6 +1,6 @@
 /*
  * Custom WS2812 effects: red default, flashing blue alert, chase pulse,
- * breathing, scanner, and a one-shot sweep overlay.
+ * breathing, scanner, and one-shot sweep/dark-wave overlays.
  *
  * Drives the strip behind the `zmk,underglow` chosen node directly, so
  * CONFIG_ZMK_RGB_UNDERGLOW must be disabled.
@@ -46,6 +46,7 @@ static struct k_work_delayable tick_work;
 static volatile uint8_t mode = MODE_RED;
 static volatile uint8_t bri = CONFIG_LED_FX_DEFAULT_BRIGHTNESS; /* percent */
 static volatile int32_t sweep_t = -1;                           /* -1 = inactive */
+static volatile int32_t wave_t = -1;                            /* -1 = inactive */
 static uint32_t ticks;
 
 static const uint8_t trail[TAIL] = {255, 110, 48, 20, 8};
@@ -166,6 +167,17 @@ static void render(void) {
     } else if (mode == MODE_OFF) {
         sweep_t = -1;
     }
+
+    /* One-shot dark pulse: each LED goes dark briefly, then resumes its mode. */
+    if (wave_t >= 0 && mode != MODE_OFF) {
+        set_px(wave_t / 2, 0, 0, 0);
+        wave_t++;
+        if (wave_t / 2 >= NUM_LEDS) {
+            wave_t = -1;
+        }
+    } else if (mode == MODE_OFF) {
+        wave_t = -1;
+    }
 }
 
 static void tick(struct k_work *work) {
@@ -204,6 +216,11 @@ int led_fx_command(uint32_t cmd) {
 
     case LED_FX_CMD_SWEEP:
         led_fx_trigger_sweep();
+        return 0;
+
+    case LED_FX_CMD_WAVE:
+        wave_t = 0;
+        k_work_reschedule(&tick_work, K_NO_WAIT);
         return 0;
 
     case LED_FX_CMD_NEXT:

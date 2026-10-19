@@ -9,6 +9,7 @@
  *   &fx FX_SCANNER   red eye bouncing back and forth
  *   &fx FX_OFF       LEDs off
  *   &fx FX_SWEEP     one-shot blue-white pulse across the strip, then back to the current effect
+ *   &fx FX_WAVE      one-shot dark pulse across the strip, restoring each LED's current color
  *   &fx FX_NEXT      cycle to the next effect
  *   &fx FX_BRI_UP / FX_BRI_DN   brightness (the encoder wrapper below uses these)
  */
@@ -23,6 +24,7 @@
 #define FX_NEXT    7
 #define FX_BRI_UP  8
 #define FX_BRI_DN  9
+#define FX_WAVE    10
 
 / {
 	behaviors {
@@ -30,6 +32,15 @@
 			compatible = "zmk,behavior-led-fx";
 			#binding-cells = <1>;
 			display-name = "LED FX";
+		};
+
+		b_wave: b_wave {
+			compatible = "zmk,behavior-macro";
+			#binding-cells = <0>;
+			display-name = "B + LED Wave";
+			bindings =
+				<&macro_tap &kp B>,
+				<&macro_tap &fx FX_WAVE>;
 		};
 
 		/* Encoder-friendly brightness: clockwise = up, counter-clockwise = down */
