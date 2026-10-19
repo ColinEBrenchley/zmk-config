@@ -61,7 +61,7 @@
 				&kp N1  &kp N2  &kp N3  &kp RET  
 					&kp N0  	&kp PERIOD
 				
-				&b_wave  &kp C
+				&b_random_mode  &kp C
 				&kp S  &kp N  
 				&kp T  &kp U  &kp V  &kp W  
 				

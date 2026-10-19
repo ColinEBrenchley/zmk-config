@@ -48,8 +48,21 @@ static volatile uint8_t bri = CONFIG_LED_FX_DEFAULT_BRIGHTNESS; /* percent */
 static volatile int32_t sweep_t = -1;                           /* -1 = inactive */
 static volatile int32_t wave_t = -1;                            /* -1 = inactive */
 static uint32_t ticks;
+static uint32_t random_state;
 
 static const uint8_t trail[TAIL] = {255, 110, 48, 20, 8};
+
+static uint32_t next_random(void) {
+    random_state ^= k_cycle_get_32();
+    if (random_state == 0) {
+        random_state = 0x6d2b79f5;
+    }
+
+    random_state ^= random_state << 13;
+    random_state ^= random_state >> 17;
+    random_state ^= random_state << 5;
+    return random_state;
+}
 
 static inline uint8_t sc(uint8_t v) { return ((uint16_t)v * bri) / 100; }
 
@@ -228,6 +241,16 @@ int led_fx_command(uint32_t cmd) {
         ticks = 0;
         break;
 
+    case LED_FX_CMD_RANDOM: {
+        uint8_t next_mode = next_random() % (MODE_COUNT - 1);
+        if (next_mode >= mode) {
+            next_mode++;
+        }
+        mode = next_mode;
+        ticks = 0;
+        break;
+    }
+
     case LED_FX_CMD_BRI_UP:
         bri = MIN(bri + BRI_STEP, CONFIG_LED_FX_MAX_BRIGHTNESS);
         break;
@@ -267,6 +290,7 @@ static int led_fx_init(void) {
         bri = CONFIG_LED_FX_MAX_BRIGHTNESS;
     }
 
+    random_state = k_cycle_get_32() | 1U;
     k_work_init_delayable(&tick_work, tick);
     k_work_schedule(&tick_work, K_MSEC(100));
     return 0;
