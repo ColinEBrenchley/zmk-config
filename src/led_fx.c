@@ -28,7 +28,8 @@ LOG_MODULE_REGISTER(led_fx, CONFIG_ZMK_LOG_LEVEL);
 #define BRI_STEP 5
 #define BRI_MIN 5
 #define TAIL 5 /* head + 4 trailing LEDs */
-#define ANIMATION_LED_COUNT 10
+#define ANIMATION_LED_COUNT 8
+#define RED_FLASH_TICKS 8
 
 enum fx_mode {
     MODE_SOLID,
@@ -40,18 +41,11 @@ enum fx_mode {
     MODE_COUNT,
 };
 
-static const enum fx_mode random_modes[] = {
-    MODE_SOLID,
-    MODE_ALERT,
-    MODE_CHASE,
-    MODE_BREATHE,
-    MODE_SCANNER,
-};
-
-/* Follow physical LEDs 4,3,2,1,5,6,7,8,9,10; LEDs 11-12 are auxiliary. */
+/* Follow LEDs 4,3,2,1,5,6,7,8. LEDs 9-12 stay white. */
 static const uint8_t animation_path[ANIMATION_LED_COUNT] = {
-    3, 2, 1, 0, 4, 5, 6, 7, 8, 9,
+    3, 2, 1, 0, 4, 5, 6, 7,
 };
+static const uint8_t static_white_leds[] = {8, 9, 10, 11};
 
 static const struct device *strip = DEVICE_DT_GET(STRIP_NODE);
 static struct led_rgb px[NUM_LEDS];
@@ -62,22 +56,10 @@ static volatile bool green = false;
 static volatile uint8_t bri = CONFIG_LED_FX_DEFAULT_BRIGHTNESS; /* percent */
 static volatile int32_t sweep_t = -1;                           /* -1 = inactive */
 static volatile int32_t wave_t = -1;                            /* -1 = inactive */
+static volatile uint8_t red_flash_ticks;
 static uint32_t ticks;
-static uint32_t random_state;
 
 static const uint8_t trail[TAIL] = {255, 110, 48, 20, 8};
-
-static uint32_t next_random(void) {
-    random_state ^= k_cycle_get_32();
-    if (random_state == 0) {
-        random_state = 0x6d2b79f5;
-    }
-
-    random_state ^= random_state << 13;
-    random_state ^= random_state >> 17;
-    random_state ^= random_state << 5;
-    return random_state;
-}
 
 static inline uint8_t sc(uint8_t v) { return ((uint16_t)v * bri) / 100; }
 
@@ -139,18 +121,10 @@ static inline void add_path_px(int position, uint8_t r, uint8_t g, uint8_t b) {
     }
 }
 
-static uint8_t breathe_level(void) {
-    uint32_t p = (ticks * 2) % 128;
-    uint32_t tri = p < 64 ? p * 4 : (127 - p) * 4;
-    uint32_t v = (tri * tri) / 255;
-    return 10 + (v * 245) / 255;
-}
-
-static void render_auxiliary_breathe(void) {
-    uint8_t level = breathe_level();
-    for (int i = ANIMATION_LED_COUNT; i < NUM_LEDS; i++) {
-        uint8_t brightness = sc(level);
-        set_px(i, brightness, brightness, brightness);
+static void render_static_white_leds(void) {
+    uint8_t brightness = sc(255);
+    for (size_t i = 0; i < ARRAY_SIZE(static_white_leds); i++) {
+        set_px(static_white_leds[i], brightness, brightness, brightness);
     }
 }
 
@@ -186,14 +160,16 @@ static void render(void) {
             max_path_px(head - t, color_r(trail[t]), color_g(trail[t]),
                         t == 0 ? lvl / 2 : 0);
         }
-        render_auxiliary_breathe();
         break;
     }
 
     case MODE_BREATHE: {
-        uint8_t v = breathe_level();
+        uint32_t p = (ticks * 2) % 128;
+        uint32_t tri = p < 64 ? p * 4 : (127 - p) * 4;
+        uint32_t v = (tri * tri) / 255;
+        v = 10 + (v * 245) / 255;
         for (int i = 0; i < NUM_LEDS; i++) {
-            set_px(i, color_r(v), color_g(v), 0);
+            set_px(i, color_r((uint8_t)v), color_g((uint8_t)v), 0);
         }
         break;
     }
@@ -213,7 +189,6 @@ static void render(void) {
         max_path_px(pos + 1, color_r(80), color_g(80), 0);
         max_path_px(pos - 2, color_r(16), color_g(16), 0);
         max_path_px(pos + 2, color_r(16), color_g(16), 0);
-        render_auxiliary_breathe();
         break;
     }
 
@@ -229,7 +204,6 @@ static void render(void) {
             add_path_px(head - t, color_r(trail[t]), color_g(trail[t]),
                         t == 0 ? lvl / 2 : 0);
         }
-        render_auxiliary_breathe();
         sweep_t++;
         if ((sweep_t / 2) - (TAIL - 1) >= ANIMATION_LED_COUNT) {
             sweep_t = -1;
@@ -245,9 +219,17 @@ static void render(void) {
         if (wave_t / 2 >= ANIMATION_LED_COUNT) {
             wave_t = -1;
         }
-        render_auxiliary_breathe();
     } else if (mode == MODE_OFF) {
         wave_t = -1;
+    }
+
+    render_static_white_leds();
+    if (red_flash_ticks > 0) {
+        uint8_t brightness = red_flash_ticks > 5 ? 255 : red_flash_ticks * 40;
+        for (int i = 0; i < NUM_LEDS; i++) {
+            set_px(i, brightness, 0, 0);
+        }
+        red_flash_ticks--;
     }
 }
 
@@ -299,20 +281,20 @@ int led_fx_command(uint32_t cmd) {
         k_work_reschedule(&tick_work, K_NO_WAIT);
         return 0;
 
+    case LED_FX_CMD_FLASH:
+        red_flash_ticks = RED_FLASH_TICKS;
+        k_work_reschedule(&tick_work, K_NO_WAIT);
+        return 0;
+
     case LED_FX_CMD_NEXT:
         mode = (mode + 1) % MODE_COUNT;
         ticks = 0;
         break;
 
-    case LED_FX_CMD_RANDOM: {
-        uint8_t next_index = (uint8_t)(next_random() % ARRAY_SIZE(random_modes));
-        if (random_modes[next_index] == mode) {
-            next_index = (uint8_t)((next_index + 1) % ARRAY_SIZE(random_modes));
-        }
-        mode = random_modes[next_index];
+    case LED_FX_CMD_PREV:
+        mode = (mode + MODE_COUNT - 1) % MODE_COUNT;
         ticks = 0;
         break;
-    }
 
     case LED_FX_CMD_GREEN:
         green = !green;
@@ -359,7 +341,6 @@ static int led_fx_init(void) {
         bri = CONFIG_LED_FX_MAX_BRIGHTNESS;
     }
 
-    random_state = k_cycle_get_32() | 1U;
     k_work_init_delayable(&tick_work, tick);
     k_work_schedule(&tick_work, K_MSEC(100));
     return 0;

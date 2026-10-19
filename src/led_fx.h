@@ -15,8 +15,9 @@ enum led_fx_cmd {
     LED_FX_CMD_BRI_UP = 8,
     LED_FX_CMD_BRI_DN = 9,
     LED_FX_CMD_WAVE = 10,
-    LED_FX_CMD_RANDOM = 11,
     LED_FX_CMD_GREEN = 12,
+    LED_FX_CMD_PREV = 13,
+    LED_FX_CMD_FLASH = 14,
 };
 
 int led_fx_command(uint32_t cmd);

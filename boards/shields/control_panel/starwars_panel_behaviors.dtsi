@@ -11,8 +11,9 @@
  *   &fx FX_SWEEP     one-shot bright pulse in the selected color, then back to the current effect
  *   &fx FX_WAVE      one-shot dark pulse across the strip, restoring each LED's current color
  *   &fx FX_NEXT      cycle to the next effect
- *   &fx FX_RANDOM    select a random non-off effect different from the current one
  *   &fx FX_GREEN     select the green palette and solid effect
+ *   &fx FX_PREV      cycle backward through effects
+ *   &fx FX_FLASH     quick full-strip red flash, then restore the current effect
  *   &fx FX_BRI_UP / FX_BRI_DN   brightness (the encoder wrapper below uses these)
  */
 
@@ -27,8 +28,9 @@
 #define FX_BRI_UP  8
 #define FX_BRI_DN  9
 #define FX_WAVE    10
-#define FX_RANDOM  11
 #define FX_GREEN   12
+#define FX_PREV    13
+#define FX_FLASH   14
 
 / {
 	behaviors {
@@ -38,13 +40,31 @@
 			display-name = "LED FX";
 		};
 
-		b_random_mode: b_random_mode {
+		b_red_flash: b_red_flash {
 			compatible = "zmk,behavior-macro";
 			#binding-cells = <0>;
-			display-name = "B + Random LED Mode";
+			display-name = "B + Red Flash";
 			bindings =
 				<&macro_tap &kp B>,
-				<&macro_tap &fx FX_RANDOM>;
+				<&macro_tap &fx FX_FLASH>;
+		};
+
+		v_previous_mode: v_previous_mode {
+			compatible = "zmk,behavior-macro";
+			#binding-cells = <0>;
+			display-name = "V + Previous LED Mode";
+			bindings =
+				<&macro_tap &kp V>,
+				<&macro_tap &fx FX_PREV>;
+		};
+
+		w_next_mode: w_next_mode {
+			compatible = "zmk,behavior-macro";
+			#binding-cells = <0>;
+			display-name = "W + Next LED Mode";
+			bindings =
+				<&macro_tap &kp W>,
+				<&macro_tap &fx FX_NEXT>;
 		};
 
 		/* Encoder-friendly brightness: clockwise = up, counter-clockwise = down */
