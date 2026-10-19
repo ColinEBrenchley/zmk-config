@@ -1,5 +1,5 @@
 /*
- * Custom WS2812 effects: red default, flashing blue alert, chase pulse,
+ * Custom WS2812 effects: selectable red/green palette, alert, chase pulse,
  * breathing, scanner, and one-shot sweep/dark-wave overlays.
  *
  * Drives the strip behind the `zmk,underglow` chosen node directly, so
@@ -30,7 +30,7 @@ LOG_MODULE_REGISTER(led_fx, CONFIG_ZMK_LOG_LEVEL);
 #define TAIL 5 /* head + 4 trailing LEDs */
 
 enum fx_mode {
-    MODE_RED,
+    MODE_SOLID,
     MODE_ALERT,
     MODE_CHASE,
     MODE_BREATHE,
@@ -39,11 +39,20 @@ enum fx_mode {
     MODE_COUNT,
 };
 
+static const enum fx_mode random_modes[] = {
+    MODE_SOLID,
+    MODE_ALERT,
+    MODE_CHASE,
+    MODE_BREATHE,
+    MODE_SCANNER,
+};
+
 static const struct device *strip = DEVICE_DT_GET(STRIP_NODE);
 static struct led_rgb px[NUM_LEDS];
 static struct k_work_delayable tick_work;
 
-static volatile uint8_t mode = MODE_RED;
+static volatile uint8_t mode = MODE_SOLID;
+static volatile bool green = false;
 static volatile uint8_t bri = CONFIG_LED_FX_DEFAULT_BRIGHTNESS; /* percent */
 static volatile int32_t sweep_t = -1;                           /* -1 = inactive */
 static volatile int32_t wave_t = -1;                            /* -1 = inactive */
@@ -65,6 +74,14 @@ static uint32_t next_random(void) {
 }
 
 static inline uint8_t sc(uint8_t v) { return ((uint16_t)v * bri) / 100; }
+
+static inline uint8_t color_r(uint8_t level) {
+    return green ? 0 : sc(level);
+}
+
+static inline uint8_t color_g(uint8_t level) {
+    return green ? sc(level) : 0;
+}
 
 static inline void set_px(int i, uint8_t r, uint8_t g, uint8_t b) {
     if (i < 0 || i >= NUM_LEDS) {
@@ -102,9 +119,9 @@ static void render(void) {
     memset(px, 0, sizeof(px));
 
     switch (mode) {
-    case MODE_RED:
+    case MODE_SOLID:
         for (int i = 0; i < NUM_LEDS; i++) {
-            set_px(i, sc(255), 0, 0);
+            set_px(i, color_r(255), color_g(255), 0);
         }
         break;
 
@@ -112,9 +129,9 @@ static void render(void) {
         bool on = ((ticks / 8) % 2) == 0; /* ~240 ms on / 240 ms off */
         for (int i = 0; i < NUM_LEDS; i++) {
             if (on) {
-                set_px(i, 0, 0, sc(255));
+                set_px(i, color_r(255), color_g(255), 0);
             } else {
-                set_px(i, sc(255) / 8, 0, 0); /* dim red between flashes */
+                set_px(i, color_r(255) / 8, color_g(255) / 8, 0);
             }
         }
         break;
@@ -123,12 +140,12 @@ static void render(void) {
     case MODE_CHASE: {
         int head = (ticks / 3) % (NUM_LEDS + TAIL); /* ~90 ms per LED */
         for (int i = 0; i < NUM_LEDS; i++) {
-            set_px(i, sc(255) / 5, 0, 0);
+            set_px(i, color_r(255) / 5, color_g(255) / 5, 0);
         }
         for (int t = 0; t < TAIL; t++) {
             uint8_t lvl = sc(trail[t]);
-            /* head glows whiter, tail is pure red */
-            max_px(head - t, lvl, t == 0 ? lvl / 2 : 0, t == 0 ? lvl / 2 : 0);
+            max_px(head - t, color_r(trail[t]), color_g(trail[t]),
+                   t == 0 ? lvl / 2 : 0);
         }
         break;
     }
@@ -139,7 +156,7 @@ static void render(void) {
         uint32_t v = (tri * tri) / 255;                /* ease */
         v = 10 + (v * 245) / 255;
         for (int i = 0; i < NUM_LEDS; i++) {
-            set_px(i, sc(v), 0, 0);
+            set_px(i, color_r(v), color_g(v), 0);
         }
         break;
     }
@@ -152,13 +169,13 @@ static void render(void) {
             pos = period - pos;
         }
         for (int i = 0; i < NUM_LEDS; i++) {
-            set_px(i, sc(255) / 16, 0, 0);
+            set_px(i, color_r(255) / 16, color_g(255) / 16, 0);
         }
-        max_px(pos, sc(255), 0, 0);
-        max_px(pos - 1, sc(80), 0, 0);
-        max_px(pos + 1, sc(80), 0, 0);
-        max_px(pos - 2, sc(16), 0, 0);
-        max_px(pos + 2, sc(16), 0, 0);
+        max_px(pos, color_r(255), color_g(255), 0);
+        max_px(pos - 1, color_r(80), color_g(80), 0);
+        max_px(pos + 1, color_r(80), color_g(80), 0);
+        max_px(pos - 2, color_r(16), color_g(16), 0);
+        max_px(pos + 2, color_r(16), color_g(16), 0);
         break;
     }
 
@@ -166,12 +183,13 @@ static void render(void) {
         break;
     }
 
-    /* One-shot sweep overlay: blue-white pulse, 2 ticks (~60 ms) per LED */
+    /* One-shot bright pulse in the selected color, 2 ticks (~60 ms) per LED. */
     if (sweep_t >= 0 && mode != MODE_OFF) {
         int head = sweep_t / 2;
         for (int t = 0; t < TAIL; t++) {
             uint8_t lvl = sc(trail[t]);
-            add_px(head - t, lvl / 2, lvl / 2, lvl);
+            add_px(head - t, color_r(trail[t]), color_g(trail[t]),
+                   t == 0 ? lvl / 2 : 0);
         }
         sweep_t++;
         if ((sweep_t / 2) - (TAIL - 1) >= NUM_LEDS) {
@@ -212,7 +230,6 @@ void led_fx_trigger_sweep(void) {
 
 int led_fx_command(uint32_t cmd) {
     switch (cmd) {
-    case LED_FX_CMD_RED:
     case LED_FX_CMD_CHASE:
     case LED_FX_CMD_BREATHE:
     case LED_FX_CMD_SCANNER:
@@ -221,9 +238,15 @@ int led_fx_command(uint32_t cmd) {
         ticks = 0;
         break;
 
+    case LED_FX_CMD_RED:
+        green = false;
+        mode = MODE_SOLID;
+        ticks = 0;
+        break;
+
     case LED_FX_CMD_ALERT:
-        /* toggle: alert <-> default red */
-        mode = (mode == MODE_ALERT) ? MODE_RED : MODE_ALERT;
+        /* Toggle alert without changing the selected color. */
+        mode = (mode == MODE_ALERT) ? MODE_SOLID : MODE_ALERT;
         ticks = 0;
         break;
 
@@ -242,14 +265,20 @@ int led_fx_command(uint32_t cmd) {
         break;
 
     case LED_FX_CMD_RANDOM: {
-        uint8_t next_mode = next_random() % (MODE_COUNT - 1);
-        if (next_mode >= mode) {
-            next_mode++;
+        uint8_t next_index = (uint8_t)(next_random() % ARRAY_SIZE(random_modes));
+        if (random_modes[next_index] == mode) {
+            next_index = (uint8_t)((next_index + 1) % ARRAY_SIZE(random_modes));
         }
-        mode = next_mode;
+        mode = random_modes[next_index];
         ticks = 0;
         break;
     }
+
+    case LED_FX_CMD_GREEN:
+        green = !green;
+        mode = MODE_SOLID;
+        ticks = 0;
+        break;
 
     case LED_FX_CMD_BRI_UP:
         bri = MIN(bri + BRI_STEP, CONFIG_LED_FX_MAX_BRIGHTNESS);

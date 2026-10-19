@@ -2,16 +2,17 @@
  * LED effect behaviors (implemented in src/led_fx.c + src/behavior_led_fx.c).
  * The numbers below MUST match enum led_fx_cmd in src/led_fx.h.
  *
- *   &fx FX_RED       solid red (default)
- *   &fx FX_ALERT     flashing blue; press again to return to red
- *   &fx FX_CHASE     red base with a bright pulse running along the strip
- *   &fx FX_BREATHE   slow red breathing
- *   &fx FX_SCANNER   red eye bouncing back and forth
+ *   &fx FX_RED       solid red (default; also selects the red palette)
+ *   &fx FX_ALERT     flashing selected color; press again to return to solid
+ *   &fx FX_CHASE     selected-color base with a bright pulse
+ *   &fx FX_BREATHE   slow breathing in the selected color
+ *   &fx FX_SCANNER   scanner in the selected color
  *   &fx FX_OFF       LEDs off
- *   &fx FX_SWEEP     one-shot blue-white pulse across the strip, then back to the current effect
+ *   &fx FX_SWEEP     one-shot bright pulse in the selected color, then back to the current effect
  *   &fx FX_WAVE      one-shot dark pulse across the strip, restoring each LED's current color
  *   &fx FX_NEXT      cycle to the next effect
- *   &fx FX_RANDOM    select a random effect different from the current one
+ *   &fx FX_RANDOM    select a random non-off effect different from the current one
+ *   &fx FX_GREEN     select the green palette and solid effect
  *   &fx FX_BRI_UP / FX_BRI_DN   brightness (the encoder wrapper below uses these)
  */
 
@@ -27,6 +28,7 @@
 #define FX_BRI_DN  9
 #define FX_WAVE    10
 #define FX_RANDOM  11
+#define FX_GREEN   12
 
 / {
 	behaviors {

@@ -35,6 +35,12 @@
 			key-positions = <9 15 16 22>;
 			bindings = <&bootloader>;
 		};
+
+		green_mode_combo {
+			timeout-ms = <100>;
+			key-positions = <5 15 17 13>;
+			bindings = <&fx FX_GREEN>;
+		};
 	};
 
 	/* Extra layer that only turns on for a switch combination.
