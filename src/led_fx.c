@@ -30,6 +30,7 @@ LOG_MODULE_REGISTER(led_fx, CONFIG_ZMK_LOG_LEVEL);
 #define TAIL 5 /* head + 4 trailing LEDs */
 #define ANIMATION_LED_COUNT 8
 #define RED_FLASH_TICKS 8
+#define SOUND_TICKS 36
 
 enum fx_mode {
     MODE_SOLID,
@@ -57,9 +58,13 @@ static volatile uint8_t bri = CONFIG_LED_FX_DEFAULT_BRIGHTNESS; /* percent */
 static volatile int32_t sweep_t = -1;                           /* -1 = inactive */
 static volatile int32_t wave_t = -1;                            /* -1 = inactive */
 static volatile uint8_t red_flash_ticks;
+static volatile int32_t sound_t = -1;                           /* -1 = inactive */
 static uint32_t ticks;
 
 static const uint8_t trail[TAIL] = {255, 110, 48, 20, 8};
+static const uint8_t sound_wave[16] = {
+    8, 20, 48, 115, 255, 115, 48, 16, 4, 12, 32, 80, 180, 80, 28, 8,
+};
 
 static inline uint8_t sc(uint8_t v) { return ((uint16_t)v * bri) / 100; }
 
@@ -131,73 +136,81 @@ static void render_static_white_leds(void) {
 static void render(void) {
     memset(px, 0, sizeof(px));
 
-    switch (mode) {
-    case MODE_SOLID:
+    bool sound_active = sound_t >= 0 && mode != MODE_OFF;
+    if (sound_active) {
+        uint8_t background = sc(24);
         for (int i = 0; i < NUM_LEDS; i++) {
-            set_px(i, color_r(255), color_g(255), 0);
+            set_px(i, 0, 0, background);
         }
-        break;
-
-    case MODE_ALERT: {
-        bool on = ((ticks / 8) % 2) == 0; /* ~240 ms on / 240 ms off */
-        for (int i = 0; i < NUM_LEDS; i++) {
-            if (on) {
+    } else {
+        switch (mode) {
+        case MODE_SOLID:
+            for (int i = 0; i < NUM_LEDS; i++) {
                 set_px(i, color_r(255), color_g(255), 0);
-            } else {
-                set_px(i, color_r(255) / 8, color_g(255) / 8, 0);
             }
-        }
-        break;
-    }
+            break;
 
-    case MODE_CHASE: {
-        int head = (ticks / 3) % (ANIMATION_LED_COUNT + TAIL); /* ~90 ms per LED */
-        for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
-            set_path_px(i, color_r(255) / 5, color_g(255) / 5, 0);
+        case MODE_ALERT: {
+            bool on = ((ticks / 8) % 2) == 0; /* ~240 ms on / 240 ms off */
+            for (int i = 0; i < NUM_LEDS; i++) {
+                if (on) {
+                    set_px(i, color_r(255), color_g(255), 0);
+                } else {
+                    set_px(i, color_r(255) / 8, color_g(255) / 8, 0);
+                }
+            }
+            break;
         }
-        for (int t = 0; t < TAIL; t++) {
-            uint8_t lvl = sc(trail[t]);
-            max_path_px(head - t, color_r(trail[t]), color_g(trail[t]),
-                        t == 0 ? lvl / 2 : 0);
-        }
-        break;
-    }
 
-    case MODE_BREATHE: {
-        uint32_t p = (ticks * 2) % 128;
-        uint32_t tri = p < 64 ? p * 4 : (127 - p) * 4;
-        uint32_t v = (tri * tri) / 255;
-        v = 10 + (v * 245) / 255;
-        for (int i = 0; i < NUM_LEDS; i++) {
-            set_px(i, color_r((uint8_t)v), color_g((uint8_t)v), 0);
+        case MODE_CHASE: {
+            int head = (ticks / 3) % (ANIMATION_LED_COUNT + TAIL); /* ~90 ms per LED */
+            for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
+                set_path_px(i, color_r(255) / 5, color_g(255) / 5, 0);
+            }
+            for (int t = 0; t < TAIL; t++) {
+                uint8_t lvl = sc(trail[t]);
+                max_path_px(head - t, color_r(trail[t]), color_g(trail[t]),
+                            t == 0 ? lvl / 2 : 0);
+            }
+            break;
         }
-        break;
-    }
 
-    case MODE_SCANNER: {
-        int span = ANIMATION_LED_COUNT - 1;
-        int period = 2 * span;
-        int pos = (ticks / 2) % period;
-        if (pos > span) {
-            pos = period - pos;
+        case MODE_BREATHE: {
+            uint32_t p = (ticks * 2) % 128;
+            uint32_t tri = p < 64 ? p * 4 : (127 - p) * 4;
+            uint32_t v = (tri * tri) / 255;
+            v = 10 + (v * 245) / 255;
+            for (int i = 0; i < NUM_LEDS; i++) {
+                set_px(i, color_r((uint8_t)v), color_g((uint8_t)v), 0);
+            }
+            break;
         }
-        for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
-            set_path_px(i, color_r(255) / 16, color_g(255) / 16, 0);
-        }
-        max_path_px(pos, color_r(255), color_g(255), 0);
-        max_path_px(pos - 1, color_r(80), color_g(80), 0);
-        max_path_px(pos + 1, color_r(80), color_g(80), 0);
-        max_path_px(pos - 2, color_r(16), color_g(16), 0);
-        max_path_px(pos + 2, color_r(16), color_g(16), 0);
-        break;
-    }
 
-    default: /* MODE_OFF */
-        break;
+        case MODE_SCANNER: {
+            int span = ANIMATION_LED_COUNT - 1;
+            int period = 2 * span;
+            int pos = (ticks / 2) % period;
+            if (pos > span) {
+                pos = period - pos;
+            }
+            for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
+                set_path_px(i, color_r(255) / 16, color_g(255) / 16, 0);
+            }
+            max_path_px(pos, color_r(255), color_g(255), 0);
+            max_path_px(pos - 1, color_r(80), color_g(80), 0);
+            max_path_px(pos + 1, color_r(80), color_g(80), 0);
+            max_path_px(pos - 2, color_r(16), color_g(16), 0);
+            max_path_px(pos + 2, color_r(16), color_g(16), 0);
+            break;
+        }
+
+        default: /* MODE_OFF */
+            break;
+        }
     }
 
     /* One-shot bright pulse in the selected color, 2 ticks (~60 ms) per LED. */
-    if (sweep_t >= 0 && mode != MODE_OFF) {
+    if (!sound_active && sweep_t >= 0 && mode != MODE_OFF) {
         int head = sweep_t / 2;
         for (int t = 0; t < TAIL; t++) {
             uint8_t lvl = sc(trail[t]);
@@ -213,7 +226,7 @@ static void render(void) {
     }
 
     /* One-shot dark pulse: each LED goes dark briefly, then resumes its mode. */
-    if (wave_t >= 0 && mode != MODE_OFF) {
+    if (!sound_active && wave_t >= 0 && mode != MODE_OFF) {
         set_path_px(wave_t / 2, 0, 0, 0);
         wave_t++;
         if (wave_t / 2 >= ANIMATION_LED_COUNT) {
@@ -223,7 +236,31 @@ static void render(void) {
         wave_t = -1;
     }
 
-    render_static_white_leds();
+    /* Short cyan soundwave with irregular white twinkles. */
+    if (sound_t >= 0 && mode != MODE_OFF) {
+        for (int position = 0; position < ANIMATION_LED_COUNT; position++) {
+            uint8_t level = sc(sound_wave[(sound_t + position * 2) % ARRAY_SIZE(sound_wave)]);
+            max_path_px(position, level / 4, (level * 3) / 4, level);
+
+            uint32_t sparkle = (uint32_t)(sound_t + 1) * 0x9E3779B9u;
+            sparkle ^= (uint32_t)(position + 1) * 0x85EBCA6Bu;
+            sparkle ^= sparkle >> 16;
+            if ((sparkle & 0x1Fu) < 3) {
+                uint8_t brightness = sc(255);
+                max_path_px(position, brightness, brightness, brightness);
+            }
+        }
+        sound_t++;
+        if (sound_t >= SOUND_TICKS) {
+            sound_t = -1;
+        }
+    } else if (mode == MODE_OFF) {
+        sound_t = -1;
+    }
+
+    if (!sound_active) {
+        render_static_white_leds();
+    }
     if (red_flash_ticks > 0) {
         uint8_t brightness = red_flash_ticks > 5 ? 255 : red_flash_ticks * 40;
         for (int i = 0; i < NUM_LEDS; i++) {
@@ -283,6 +320,11 @@ int led_fx_command(uint32_t cmd) {
 
     case LED_FX_CMD_FLASH:
         red_flash_ticks = RED_FLASH_TICKS;
+        k_work_reschedule(&tick_work, K_NO_WAIT);
+        return 0;
+
+    case LED_FX_CMD_SOUND:
+        sound_t = 0;
         k_work_reschedule(&tick_work, K_NO_WAIT);
         return 0;
 

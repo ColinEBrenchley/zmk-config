@@ -14,6 +14,7 @@
  *   &fx FX_GREEN     select the green palette and solid effect
  *   &fx FX_PREV      cycle backward through effects
  *   &fx FX_FLASH     quick full-strip red flash, then restore the current effect
+ *   &fx FX_SOUND     short cyan soundwave with irregular white twinkles
  *   &fx FX_BRI_UP / FX_BRI_DN   brightness (the encoder wrapper below uses these)
  */
 
@@ -31,6 +32,7 @@
 #define FX_GREEN   12
 #define FX_PREV    13
 #define FX_FLASH   14
+#define FX_SOUND   15
 
 / {
 	behaviors {
@@ -47,6 +49,15 @@
 			bindings =
 				<&macro_tap &kp B>,
 				<&macro_tap &fx FX_FLASH>;
+		};
+
+		s_soundwave: s_soundwave {
+			compatible = "zmk,behavior-macro";
+			#binding-cells = <0>;
+			display-name = "S + Soundwave";
+			bindings =
+				<&macro_tap &kp S>,
+				<&macro_tap &fx FX_SOUND>;
 		};
 
 		v_previous_mode: v_previous_mode {

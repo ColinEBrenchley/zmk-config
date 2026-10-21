@@ -68,8 +68,8 @@
 					&kp N0  	&kp PERIOD
 				
 				&b_red_flash  &kp C
-				&kp S  &kp N  
-				&kp T  &kp U  &v_previous_mode  &w_next_mode
+				&s_soundwave  &kp U
+				&kp T  &kp N  &v_previous_mode  &w_next_mode
 				
 				&kp X  &kp Y
 				&kp Z  &kp SPACE  &kp RET
