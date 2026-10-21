@@ -17,6 +17,10 @@
 #include <zmk/event_manager.h>
 #include <zmk/events/position_state_changed.h>
 
+#if IS_ENABLED(CONFIG_RAW_HID)
+#include <raw_hid/events.h>
+#endif
+
 #include "led_fx.h"
 
 LOG_MODULE_REGISTER(led_fx, CONFIG_ZMK_LOG_LEVEL);
@@ -371,6 +375,30 @@ static int led_fx_position_listener(const zmk_event_t *eh) {
 
 ZMK_LISTENER(led_fx, led_fx_position_listener);
 ZMK_SUBSCRIPTION(led_fx, zmk_position_state_changed);
+#endif
+
+#if IS_ENABLED(CONFIG_RAW_HID)
+static int led_fx_raw_hid_listener(const zmk_event_t *eh) {
+    const struct raw_hid_received_event *event = as_raw_hid_received_event(eh);
+    if (event == NULL) {
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    if (event->data == NULL || event->length < 1) {
+        LOG_WRN("Ignoring empty Raw HID LED FX report");
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    int rc = led_fx_command(event->data[0]);
+    if (rc) {
+        LOG_WRN("Ignoring unknown Raw HID LED FX command %u", event->data[0]);
+    }
+
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+ZMK_LISTENER(led_fx_raw_hid, led_fx_raw_hid_listener);
+ZMK_SUBSCRIPTION(led_fx_raw_hid, raw_hid_received_event);
 #endif
 
 static int led_fx_init(void) {
