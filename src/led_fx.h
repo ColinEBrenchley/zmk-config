@@ -21,6 +21,11 @@ enum led_fx_cmd {
     LED_FX_CMD_SOUND = 15,
     LED_FX_CMD_STARFIELD = 16,
     LED_FX_CMD_METEOR = 17,
+    LED_FX_CMD_RIPPLE = 18,
+    LED_FX_CMD_DUAL_CHASE = 19,
+    LED_FX_CMD_RAINBOW = 20,
+    LED_FX_CMD_EQUALIZER = 21,
+    LED_FX_CMD_RAIN = 22,
 };
 
 int led_fx_command(uint32_t cmd);

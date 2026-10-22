@@ -37,6 +37,7 @@ LOG_MODULE_REGISTER(led_fx, CONFIG_ZMK_LOG_LEVEL);
 #define SOUND_TICKS 36
 #define METEOR_TAIL 6
 #define METEOR_PAUSE 12 /* ticks between meteors */
+#define RAIN_DROPLETS 4
 
 enum fx_mode {
     MODE_SOLID,
@@ -47,6 +48,11 @@ enum fx_mode {
     MODE_OFF,
     MODE_STARFIELD,
     MODE_METEOR,
+    MODE_RIPPLE,
+    MODE_DUAL_CHASE,
+    MODE_RAINBOW,
+    MODE_EQUALIZER,
+    MODE_RAIN,
     MODE_COUNT,
 };
 
@@ -111,6 +117,22 @@ static inline void max_px(int i, uint8_t r, uint8_t g, uint8_t b) {
 static inline void max_path_px(int position, uint8_t r, uint8_t g, uint8_t b) {
     if (position >= 0 && position < ANIMATION_LED_COUNT) {
         max_px(animation_path[position], r, g, b);
+    }
+}
+
+/* Convert a 0-255 hue to RGB (full saturation, full value). */
+static inline void hue_to_rgb(uint8_t h, uint8_t *r, uint8_t *g, uint8_t *b) {
+    /* 6-segment hue wheel (each 1/6 = 42.67) */
+    uint8_t sector = h / 43; /* 0..5 */
+    uint8_t rem = (h - sector * 43) * 6; /* 0..255 within segment */
+
+    switch (sector) {
+    case 0: *r = 255; *g = rem;   *b = 0;   break;
+    case 1: *r = 255 - rem; *g = 255; *b = 0;   break;
+    case 2: *r = 0;   *g = 255; *b = rem;   break;
+    case 3: *r = 0;   *g = 255 - rem; *b = 255; break;
+    case 4: *r = rem; *g = 0;   *b = 255; break;
+    default: *r = 255; *g = 0;   *b = 255 - rem; break;
     }
 }
 
@@ -253,6 +275,98 @@ static void render(void) {
             break;
         }
 
+        case MODE_RIPPLE: {
+            /* Two pulses expand outward from the center of the path. */
+            int span = ANIMATION_LED_COUNT - 1;
+            int center = span / 2; /* index 3 */
+            int period = span + 1; /* time to reach both edges */
+            int dist = (ticks / 2) % (period * 2);
+            if (dist > span) {
+                dist = span * 2 - dist; /* bounce back for a smooth loop */
+            }
+            /* Faint base */
+            for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
+                set_path_px(i, color_r(255) / 8, color_g(255) / 8, 0);
+            }
+            /* Bright pulse at distance `dist` from center (both sides) */
+            for (int d = 0; d <= dist; d++) {
+                int brightness = 255 - d * 40;
+                if (brightness < 0) brightness = 0;
+                int left = center - d;
+                int right = center + d;
+                if (left >= 0) {
+                    max_path_px(left, color_r(brightness), color_g(brightness), 0);
+                }
+                if (right <= span) {
+                    max_path_px(right, color_r(brightness), color_g(brightness), 0);
+                }
+            }
+            break;
+        }
+
+        case MODE_DUAL_CHASE: {
+            /* Two pulses moving in opposite directions simultaneously. */
+            int period = ANIMATION_LED_COUNT + TAIL;
+            int head_a = (ticks / 3) % period;
+            int head_b = period - (ticks / 3) % period;
+
+            for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
+                set_path_px(i, color_r(255) / 5, color_g(255) / 5, 0);
+            }
+            for (int t = 0; t < TAIL; t++) {
+                uint8_t lvl = sc(trail[t]);
+                /* Head A moving forward */
+                max_path_px(head_a - t, color_r(trail[t]), color_g(trail[t]),
+                            t == 0 ? lvl / 2 : 0);
+                /* Head B moving backward */
+                max_path_px(head_b - t, color_r(trail[t]), color_g(trail[t]),
+                            t == 0 ? lvl / 2 : 0);
+            }
+            break;
+        }
+
+        case MODE_RAINBOW: {
+            /* Full hue wheel sweeping along the path over time. */
+            uint8_t hue_shift = (uint8_t)(ticks / 2);
+            for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
+                uint8_t hue = (hue_shift + i * (256 / ANIMATION_LED_COUNT)) & 0xFF;
+                uint8_t r, g, b;
+                hue_to_rgb(hue, &r, &g, &b);
+                set_path_px(i, sc(r), sc(g), sc(b));
+            }
+            break;
+        }
+
+        case MODE_EQUALIZER: {
+            /* Pseudo-random bar heights, like a spectrum analyzer. */
+            for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
+                uint32_t h = (uint32_t)(ticks * 5 + i * 97) * 0x9E3779B9u;
+                h ^= h >> 13;
+                h ^= h << 11;
+                uint8_t level = (uint8_t)(h % 256);
+                max_path_px(i, color_r(level), color_g(level), 0);
+            }
+            break;
+        }
+
+        case MODE_RAIN: {
+            /* Multiple independent droplets with short trails. */
+            for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
+                set_path_px(i, color_r(255) / 10, color_g(255) / 10, 0);
+            }
+            for (int d = 0; d < RAIN_DROPLETS; d++) {
+                /* Each droplet has a different speed and offset */
+                uint32_t speed = 2 + (d % 3); /* 2, 3, or 4 ticks per step */
+                uint32_t offset = d * 17;
+                int head = ((ticks / speed) + offset) % (ANIMATION_LED_COUNT + 3);
+                for (int t = 0; t < 3; t++) {
+                    uint8_t lvl = sc(trail[t]);
+                    max_path_px(head - t, color_r(trail[t]), color_g(trail[t]), 0);
+                }
+            }
+            break;
+        }
+
         default: /* MODE_OFF */
             break;
         }
@@ -307,7 +421,7 @@ static void render(void) {
         sound_t = -1;
     }
 
-    if (!sound_active && mode != MODE_STARFIELD) {
+    if (!sound_active && mode != MODE_STARFIELD && mode != MODE_RAINBOW) {
         render_static_white_leds();
     }
     if (red_flash_ticks > 0) {
@@ -394,6 +508,31 @@ int led_fx_command(uint32_t cmd) {
 
     case LED_FX_CMD_METEOR:
         mode = MODE_METEOR;
+        ticks = 0;
+        break;
+
+    case LED_FX_CMD_RIPPLE:
+        mode = MODE_RIPPLE;
+        ticks = 0;
+        break;
+
+    case LED_FX_CMD_DUAL_CHASE:
+        mode = MODE_DUAL_CHASE;
+        ticks = 0;
+        break;
+
+    case LED_FX_CMD_RAINBOW:
+        mode = MODE_RAINBOW;
+        ticks = 0;
+        break;
+
+    case LED_FX_CMD_EQUALIZER:
+        mode = MODE_EQUALIZER;
+        ticks = 0;
+        break;
+
+    case LED_FX_CMD_RAIN:
+        mode = MODE_RAIN;
         ticks = 0;
         break;
 

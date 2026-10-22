@@ -17,6 +17,11 @@
  *   &fx FX_SOUND     short cyan soundwave with irregular white twinkles
  *   &fx FX_STARFIELD random star-like twinkle across the strip
  *   &fx FX_METEOR    bright streak with a fading tail, alternating direction
+ *   &fx FX_RIPPLE    two pulses expanding outward from the center
+ *   &fx FX_DUAL_CHASE two pulses moving in opposite directions
+ *   &fx FX_RAINBOW   full hue wheel sweeping along the path
+ *   &fx FX_EQUALIZER pseudo-random spectrum-analyzer bars
+ *   &fx FX_RAIN      multiple independent droplets with short trails
  *   &fx FX_BRI_UP / FX_BRI_DN   brightness (the encoder wrapper below uses these)
  */
 
@@ -37,6 +42,11 @@
 #define FX_SOUND   15
 #define FX_STARFIELD 16
 #define FX_METEOR  17
+#define FX_RIPPLE  18
+#define FX_DUAL_CHASE 19
+#define FX_RAINBOW 20
+#define FX_EQUALIZER 21
+#define FX_RAIN    22
 
 / {
 	behaviors {
