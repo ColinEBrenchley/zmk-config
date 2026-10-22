@@ -35,6 +35,8 @@ LOG_MODULE_REGISTER(led_fx, CONFIG_ZMK_LOG_LEVEL);
 #define ANIMATION_LED_COUNT 8
 #define RED_FLASH_TICKS 8
 #define SOUND_TICKS 36
+#define METEOR_TAIL 6
+#define METEOR_PAUSE 12 /* ticks between meteors */
 
 enum fx_mode {
     MODE_SOLID,
@@ -43,6 +45,8 @@ enum fx_mode {
     MODE_BREATHE,
     MODE_SCANNER,
     MODE_OFF,
+    MODE_STARFIELD,
+    MODE_METEOR,
     MODE_COUNT,
 };
 
@@ -208,6 +212,47 @@ static void render(void) {
             break;
         }
 
+        case MODE_STARFIELD: {
+            for (int i = 0; i < NUM_LEDS; i++) {
+                set_px(i, sc(10), sc(10), sc(10));
+            }
+            for (int i = 0; i < 5; i++) {
+                uint32_t h = (uint32_t)(ticks * 7 + i * 131) * 0x9E3779B9u;
+                h ^= h >> 16;
+                int pos = (int)(h % NUM_LEDS);
+                uint32_t v = h % 100;
+                if (v < 25) {
+                    uint8_t b = sc(255);
+                    max_px(pos, b, b, b);
+                } else if (v < 60) {
+                    uint8_t b = sc(120);
+                    max_px(pos, b, b, b);
+                }
+            }
+            break;
+        }
+
+        case MODE_METEOR: {
+            int span = ANIMATION_LED_COUNT - 1;
+            int travel = span + METEOR_TAIL;
+            int cycle = travel + METEOR_PAUSE;
+            int pos = ticks % cycle;
+            if (pos < travel) {
+                bool forward = ((ticks / cycle) % 2) == 0;
+                int head = forward ? pos : (cycle - 1 - pos);
+                for (int t = 0; t < METEOR_TAIL; t++) {
+                    int idx = forward ? head - t : head + t;
+                    if (idx < 0 || idx > span) {
+                        break;
+                    }
+                    uint8_t lvl = sc(trail[t]);
+                    max_path_px(idx, color_r(trail[t]), color_g(trail[t]),
+                                t == 0 ? lvl / 2 : 0);
+                }
+            }
+            break;
+        }
+
         default: /* MODE_OFF */
             break;
         }
@@ -262,7 +307,7 @@ static void render(void) {
         sound_t = -1;
     }
 
-    if (!sound_active) {
+    if (!sound_active && mode != MODE_STARFIELD) {
         render_static_white_leds();
     }
     if (red_flash_ticks > 0) {
@@ -339,6 +384,16 @@ int led_fx_command(uint32_t cmd) {
 
     case LED_FX_CMD_PREV:
         mode = (mode + MODE_COUNT - 1) % MODE_COUNT;
+        ticks = 0;
+        break;
+
+    case LED_FX_CMD_STARFIELD:
+        mode = MODE_STARFIELD;
+        ticks = 0;
+        break;
+
+    case LED_FX_CMD_METEOR:
+        mode = MODE_METEOR;
         ticks = 0;
         break;
 

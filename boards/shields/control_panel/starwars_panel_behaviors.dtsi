@@ -15,6 +15,8 @@
  *   &fx FX_PREV      cycle backward through effects
  *   &fx FX_FLASH     quick full-strip red flash, then restore the current effect
  *   &fx FX_SOUND     short cyan soundwave with irregular white twinkles
+ *   &fx FX_STARFIELD random star-like twinkle across the strip
+ *   &fx FX_METEOR    bright streak with a fading tail, alternating direction
  *   &fx FX_BRI_UP / FX_BRI_DN   brightness (the encoder wrapper below uses these)
  */
 
@@ -33,6 +35,8 @@
 #define FX_PREV    13
 #define FX_FLASH   14
 #define FX_SOUND   15
+#define FX_STARFIELD 16
+#define FX_METEOR  17
 
 / {
 	behaviors {
@@ -86,3 +90,4 @@
 		};
 	};
 };
+
