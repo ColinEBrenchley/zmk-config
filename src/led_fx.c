@@ -58,7 +58,7 @@ enum fx_mode {
 
 /* Follow LEDs 4,3,2,1,5,6,7,8. LEDs 9-12 stay white. */
 static const uint8_t animation_path[ANIMATION_LED_COUNT] = {
-    3, 2, 1, 0, 4, 5, 6, 7,
+    3, 2, 1, 0, 7, 6, 5, 4,
 };
 static const uint8_t static_white_leds[] = {8, 9, 10, 11};
 
