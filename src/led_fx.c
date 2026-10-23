@@ -33,6 +33,8 @@ LOG_MODULE_REGISTER(led_fx, CONFIG_ZMK_LOG_LEVEL);
 #define BRI_MIN 5
 #define TAIL 5 /* head + 4 trailing LEDs */
 #define ANIMATION_LED_COUNT 8
+#define SABER_LED_COUNT 10
+#define SABER_TICK_MS 35
 #define SABER_FADE_TICKS 20
 #define RED_FLASH_TICKS 8
 #define SOUND_TICKS 36
@@ -68,6 +70,9 @@ enum saber_state {
 /* Follow LEDs 4,3,2,1,5,6,7,8. LEDs 9-12 stay white. */
 static const uint8_t animation_path[ANIMATION_LED_COUNT] = {
     3, 2, 1, 0, 7, 6, 5, 4,
+};
+static const uint8_t saber_path[SABER_LED_COUNT] = {
+    3, 2, 1, 0, 9, 8, 7, 6, 5, 4,
 };
 static const uint8_t static_white_leds[] = {8, 9, 10, 11};
 
@@ -177,28 +182,28 @@ static void render_static_white_leds(void) {
 }
 
 static void render_saber(void) {
-    uint8_t red_level = saber_red ? 255 : 8;
-    uint8_t green_level = saber_red ? 12 : 64;
-    uint8_t blue_level = saber_red ? 0 : 255;
+    uint8_t red_level = saber_red ? 200 : 0;
+    uint8_t green_level = saber_red ? 0 : 20;
+    uint8_t blue_level = saber_red ? 0 : 210;
     int lit_leds = saber_progress;
     bool flicker_active = saber_state == SABER_ON;
 
     for (int position = 0; position < lit_leds; position++) {
         uint8_t intensity = 255;
         if (flicker_active) {
-            uint32_t flicker = (ticks / 2 + 1) * 0x9E3779B9u;
+            uint32_t flicker = (ticks + 1) * 0x9E3779B9u;
             flicker ^= (uint32_t)(position + 1) * 0x85EBCA6Bu;
             flicker ^= flicker >> 16;
 
-            intensity = 190 + (flicker % 66);
-            if ((flicker & 0x7Fu) == 0) {
-                intensity = 100;
+            intensity = 175 + (flicker % 81);
+            if ((flicker & 0x3Fu) == 0) {
+                intensity = 120;
             }
         }
 
-        set_path_px(position, sc((uint8_t)((uint16_t)red_level * intensity / 255)),
-                    sc((uint8_t)((uint16_t)green_level * intensity / 255)),
-                    sc((uint8_t)((uint16_t)blue_level * intensity / 255)));
+        set_px(saber_path[position], sc((uint8_t)((uint16_t)red_level * intensity / 255)),
+               sc((uint8_t)((uint16_t)green_level * intensity / 255)),
+               sc((uint8_t)((uint16_t)blue_level * intensity / 255)));
     }
 }
 
@@ -489,9 +494,7 @@ static void tick(struct k_work *work) {
     ticks++;
     switch (saber_state) {
     case SABER_IGNITING:
-        if (saber_progress < ANIMATION_LED_COUNT) {
-            saber_progress++;
-        } else {
+        if (++saber_progress >= SABER_LED_COUNT) {
             saber_state = SABER_ON;
         }
         break;
@@ -517,7 +520,10 @@ static void tick(struct k_work *work) {
         LOG_ERR("led_strip_update_rgb failed: %d", rc);
     }
 
-    k_work_reschedule(&tick_work, K_MSEC(TICK_MS));
+    uint32_t interval = (saber_state == SABER_IGNITING || saber_state == SABER_DEACTIVATING)
+                            ? SABER_TICK_MS
+                            : TICK_MS;
+    k_work_reschedule(&tick_work, K_MSEC(interval));
 }
 
 void led_fx_trigger_sweep(void) {
