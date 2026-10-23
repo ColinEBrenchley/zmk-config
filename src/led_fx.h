@@ -1,0 +1,35 @@
+#pragma once
+
+#include <stdint.h>
+
+/* Keep in sync with the FX_* defines in starwars_panel_behaviors.dtsi */
+enum led_fx_cmd {
+    LED_FX_CMD_RED = 0,
+    LED_FX_CMD_ALERT = 1,
+    LED_FX_CMD_CHASE = 2,
+    LED_FX_CMD_BREATHE = 3,
+    LED_FX_CMD_SCANNER = 4,
+    LED_FX_CMD_OFF = 5,
+    LED_FX_CMD_SWEEP = 6,
+    LED_FX_CMD_NEXT = 7,
+    LED_FX_CMD_BRI_UP = 8,
+    LED_FX_CMD_BRI_DN = 9,
+    LED_FX_CMD_WAVE = 10,
+    LED_FX_CMD_GREEN = 12,
+    LED_FX_CMD_PREV = 13,
+    LED_FX_CMD_FLASH = 14,
+    LED_FX_CMD_SOUND = 15,
+    LED_FX_CMD_STARFIELD = 16,
+    LED_FX_CMD_METEOR = 17,
+    LED_FX_CMD_RIPPLE = 18,
+    LED_FX_CMD_DUAL_CHASE = 19,
+    LED_FX_CMD_RAINBOW = 20,
+    LED_FX_CMD_EQUALIZER = 21,
+    LED_FX_CMD_RAIN = 22,
+    LED_FX_CMD_SABER_IGNITE_BLUE = 23,
+    LED_FX_CMD_SABER_IGNITE_RED = 24,
+    LED_FX_CMD_SABER_DEACTIVATE = 25,
+};
+
+int led_fx_command(uint32_t cmd);
+void led_fx_trigger_sweep(void);

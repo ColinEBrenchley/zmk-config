@@ -1,0 +1,145 @@
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+#include "starwars_panel_behaviors.dtsi"
+
+/*
+ * Key positions (see starwars_panel-layouts.dtsi):
+ *   0-8   number cluster  -> 1..9
+ *   9-12  4-key group
+ *   13-14 2-key group A   -> LED alert / sweep
+ *   15-16 2-key group B
+ *   17-18 2-key group C
+ *   19-22 4-key group
+ *   23-24 2-key group D   -> next LED effect / F12
+ *   25    flip switch A   -> holds layer 1 (FX) while ON
+ *   26    flip switch B   -> holds layer 2 (mode B) while ON
+ *   27    flip switch C   -> holds layer 3 (mode C) while ON
+ *
+ * Layers stack: for each key the highest ACTIVE layer with a binding other
+ * than &trans wins. Layer index = order in this file (base = 0).
+ *
+ *   0 base      always on
+ *   1 fx        switch A
+ *   2 mode_b    switch B
+ *   3 mode_c    switch C
+ *   4 mode_ab   automatically on when A and B are both ON (conditional layer)
+ *
+ * Everything except 1-9 and the LED/switch keys is a placeholder: change freely.
+ */
+/ {
+	combos {
+		compatible = "zmk,combos";
+
+		bootloader_combo {
+			timeout-ms = <100>;
+			key-positions = <9 15 16 22>;
+			bindings = <&bootloader>;
+		};
+
+		green_mode_combo {
+			timeout-ms = <100>;
+			key-positions = <5 15 17 13>;
+			bindings = <&fx FX_GREEN>;
+		};
+	};
+
+	/* Extra layer that only turns on for a switch combination.
+	 * Its index must be higher than the layers in if-layers so it wins.
+	 * Copy the block for more combos (A+C, B+C, A+B+C). */
+	conditional_layers {
+		compatible = "zmk,conditional-layers";
+
+		a_and_b {
+			if-layers = <1 2>;
+			then-layer = <4>;
+		};
+	};
+
+	keymap {
+		compatible = "zmk,keymap";
+
+		base_layer {
+			display-name = "Base";
+			bindings = <
+					&kp C_MUTE  	&kp E
+				&kp N7  &kp N8  &kp N9  &kp EQUAL
+				&kp N4  &kp N5  &kp N6  
+				&kp N1  &kp N2  &kp N3  &kp RET  
+					&kp N0  	&kp PERIOD
+				
+				&b_red_flash  &kp C
+				&s_soundwave  &kp U
+				&kp T  &kp N  &v_previous_mode  &w_next_mode
+				
+				&kp X  &kp Y
+				&kp Z  &kp SPACE  &kp RET
+			>;
+
+			sensor-bindings = <
+				&inc_dec_kp C_VOL_UP C_VOL_DN
+				&inc_dec_kp UP DOWN
+			>;
+		};
+
+		fx_layer {
+			display-name = "FX";
+			bindings = <
+				&fx FX_RED  &fx FX_ALERT  &fx FX_CHASE  &fx FX_BREATHE  &fx FX_SCANNER  &fx FX_OFF  &trans  &trans  &trans
+				&fx FX_SABER_IGNITE_BLUE  &fx FX_SABER_IGNITE_RED  &fx FX_SABER_DEACTIVATE  &trans
+				&trans  &trans
+				&trans  &trans
+				&trans  &trans
+				&trans  &trans  &trans  &trans
+				&trans  &trans
+				&trans  &trans  &trans
+			>;
+
+			sensor-bindings = <
+				&inc_dec_kp PG_UP PG_DN
+				&inc_dec_kp UP DOWN
+			>;
+		};
+
+		mode_b_layer {
+			display-name = "Mode B";
+			bindings = <
+				&kp F1  &kp F2  &kp F3  &kp F4  &kp F5  &kp F6  &kp F7  &kp F8  &kp F9
+				&trans  &trans  &trans  &trans
+				&trans  &trans
+				&trans  &trans
+				&trans  &trans
+				&trans  &trans  &trans  &trans
+				&trans  &trans
+				&trans  &trans  &trans
+			>;
+		};
+
+		mode_c_layer {
+			display-name = "Mode C";
+			bindings = <
+				&kp KP_N1  &kp KP_N2  &kp KP_N3  &kp KP_N4  &kp KP_N5  &kp KP_N6  &kp KP_N7  &kp KP_N8  &kp KP_N9
+				&trans  &trans  &trans  &trans
+				&trans  &trans
+				&trans  &trans
+				&trans  &trans
+				&trans  &trans  &trans  &trans
+				&trans  &trans
+				&trans  &trans  &trans
+			>;
+		};
+
+		mode_ab_layer {
+			display-name = "A+B";
+			bindings = <
+				&kp C_PLAY_PAUSE  &kp C_PREV  &kp C_NEXT  &trans  &trans  &trans  &trans  &trans  &trans
+				&trans  &trans  &trans  &trans
+				&trans  &trans
+				&trans  &trans
+				&trans  &trans
+				&trans  &trans  &trans  &trans
+				&trans  &trans
+				&trans  &trans  &trans
+			>;
+		};
+	};
+};

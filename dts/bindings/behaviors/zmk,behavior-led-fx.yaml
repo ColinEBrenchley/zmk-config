@@ -1,0 +1,5 @@
+description: "LED effects behavior (one parameter: effect / command id)"
+
+compatible: "zmk,behavior-led-fx"
+
+include: one_param.yaml

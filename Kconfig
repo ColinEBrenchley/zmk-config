@@ -1,0 +1,21 @@
+menuconfig LED_FX
+	bool "LED FX support"
+	depends on LED_STRIP
+
+if LED_FX
+
+config LED_FX_MAX_BRIGHTNESS
+	int "Maximum LED FX brightness (percent)"
+	range 5 100
+	default 50
+
+config LED_FX_DEFAULT_BRIGHTNESS
+	int "Default LED FX brightness (percent)"
+	range 5 LED_FX_MAX_BRIGHTNESS
+	default 30
+
+config LED_FX_SWEEP_ON_KEYPRESS
+	bool "Trigger an LED sweep on every key press"
+	default n
+
+endif

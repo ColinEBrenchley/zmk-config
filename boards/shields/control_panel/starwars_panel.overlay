@@ -1,0 +1,3 @@
+/* Thin overlay: everything lives in the dtsi files, like the cosmos shield. */
+#include "starwars_panel.dtsi"
+#include "starwars_panel-layouts.dtsi"
