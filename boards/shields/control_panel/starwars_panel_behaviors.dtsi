@@ -22,6 +22,8 @@
  *   &fx FX_RAINBOW   full hue wheel sweeping along the path
  *   &fx FX_EQUALIZER pseudo-random spectrum-analyzer bars
  *   &fx FX_RAIN      multiple independent droplets with short trails
+ *   &fx FX_SABER_IGNITE_BLUE / FX_SABER_IGNITE_RED ignite and flicker
+ *   &fx FX_SABER_DEACTIVATE extinguishes the saber and fades back to the prior mode
  *   &fx FX_BRI_UP / FX_BRI_DN   brightness (the encoder wrapper below uses these)
  */
 
@@ -47,6 +49,9 @@
 #define FX_RAINBOW 20
 #define FX_EQUALIZER 21
 #define FX_RAIN    22
+#define FX_SABER_IGNITE_BLUE 23
+#define FX_SABER_IGNITE_RED  24
+#define FX_SABER_DEACTIVATE  25
 
 / {
 	behaviors {
@@ -100,4 +105,3 @@
 		};
 	};
 };
-

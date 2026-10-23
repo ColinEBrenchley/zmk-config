@@ -26,6 +26,9 @@ enum led_fx_cmd {
     LED_FX_CMD_RAINBOW = 20,
     LED_FX_CMD_EQUALIZER = 21,
     LED_FX_CMD_RAIN = 22,
+    LED_FX_CMD_SABER_IGNITE_BLUE = 23,
+    LED_FX_CMD_SABER_IGNITE_RED = 24,
+    LED_FX_CMD_SABER_DEACTIVATE = 25,
 };
 
 int led_fx_command(uint32_t cmd);

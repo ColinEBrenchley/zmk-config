@@ -85,7 +85,7 @@
 			display-name = "FX";
 			bindings = <
 				&fx FX_RED  &fx FX_ALERT  &fx FX_CHASE  &fx FX_BREATHE  &fx FX_SCANNER  &fx FX_OFF  &trans  &trans  &trans
-				&trans  &trans  &trans  &trans
+				&fx FX_SABER_IGNITE_BLUE  &fx FX_SABER_IGNITE_RED  &fx FX_SABER_DEACTIVATE  &trans
 				&trans  &trans
 				&trans  &trans
 				&trans  &trans
