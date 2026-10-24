@@ -15,6 +15,7 @@
  *   &fx FX_PREV      cycle backward through effects
  *   &fx FX_FLASH     quick full-strip red flash, then restore the current effect
  *   &fx FX_FLASH_<COLOR>  same flash in green/blue/purple/white/yellow/orange/cyan/pink
+ *   &fx FX_FLASH_SABER   flash the blade's current saber color (red when idle)
  *   &fx FX_SOUND     short cyan soundwave with irregular white twinkles
  *   &fx FX_STARFIELD random star-like twinkle across the strip
  *   &fx FX_METEOR    bright streak with a fading tail, alternating direction
@@ -80,6 +81,7 @@
 #define FX_FLASH_ORANGE  46
 #define FX_FLASH_CYAN    47
 #define FX_FLASH_PINK    48
+#define FX_FLASH_SABER   49
 
 / {
 	behaviors {
@@ -89,13 +91,15 @@
 			display-name = "LED FX";
 		};
 
+		/* Strike key. The DM console watches for B and sends the flash
+		 * color that matches the ignited saber, so the key itself must
+		 * not add a local red flash first. */
 		b_red_flash: b_red_flash {
 			compatible = "zmk,behavior-macro";
 			#binding-cells = <0>;
-			display-name = "B + Red Flash";
+			display-name = "Strike (B)";
 			bindings =
-				<&macro_tap &kp B>,
-				<&macro_tap &fx FX_FLASH>;
+				<&macro_tap &kp B>;
 		};
 
 		s_soundwave: s_soundwave {

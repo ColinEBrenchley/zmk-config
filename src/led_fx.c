@@ -547,9 +547,16 @@ static void render(void) {
     }
     if (flash_ticks > 0) {
         uint8_t brightness = flash_ticks > 5 ? 255 : flash_ticks * 40;
-        uint8_t r = (uint16_t)palette_colors[flash_color].r * brightness / 255;
-        uint8_t g = (uint16_t)palette_colors[flash_color].g * brightness / 255;
-        uint8_t b = (uint16_t)palette_colors[flash_color].b * brightness / 255;
+        /* The flash used to ignore the brightness setting and drive the strip
+         * at 100% for eight ticks. Full-brightness white (all three channels
+         * across 12 LEDs) exceeds a USB port's 500 mA budget, sags the 5V rail,
+         * and makes the blue channel droop, so the flash looks yellow or the
+         * board resets. Honor the brightness setting with a small boost for
+         * punch, capped well below the full-white current. */
+        uint32_t flash_bri = MIN(bri + 15, 60);
+        uint8_t r = (uint32_t)palette_colors[flash_color].r * flash_bri * brightness / 25500;
+        uint8_t g = (uint32_t)palette_colors[flash_color].g * flash_bri * brightness / 25500;
+        uint8_t b = (uint32_t)palette_colors[flash_color].b * flash_bri * brightness / 25500;
         for (int i = 0; i < NUM_LEDS; i++) {
             set_px(i, r, g, b);
         }
@@ -737,6 +744,12 @@ int led_fx_command(uint32_t cmd) {
 
     case LED_FX_CMD_FLASH_PINK:
         trigger_flash(LED_COLOR_PINK);
+        return 0;
+
+    case LED_FX_CMD_FLASH_SABER:
+        /* Use the blade's current color while it is igniting, lit, or fading
+         * out; fall back to red when no saber is active. */
+        trigger_flash(saber_state == SABER_IDLE ? LED_COLOR_RED : saber_color);
         return 0;
 
     case LED_FX_CMD_SOUND:
