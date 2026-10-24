@@ -84,11 +84,11 @@
 		fx_layer {
 			display-name = "FX";
 			bindings = <
-				&fx FX_RED  &fx FX_ALERT  &fx FX_CHASE  &fx FX_BREATHE  &fx FX_SCANNER  &fx FX_OFF  &trans  &trans  &trans
-				&fx FX_SABER_IGNITE_BLUE  &fx FX_SABER_IGNITE_RED  &fx FX_SABER_DEACTIVATE  &trans
-				&trans  &trans
-				&trans  &trans
-				&trans  &trans
+				&fx FX_RED  &fx FX_ALERT  &fx FX_CHASE  &fx FX_BREATHE  &fx FX_SCANNER  &fx FX_OFF  &fx FX_SABER_IGNITE_PURPLE  &fx FX_SABER_IGNITE_WHITE  &fx FX_SABER_IGNITE_YELLOW
+				&fx FX_SABER_IGNITE_BLUE  &fx FX_SABER_IGNITE_RED  &fx FX_SABER_DEACTIVATE  &fx FX_SABER_IGNITE_GREEN
+				&fx FX_SABER_IGNITE_ORANGE  &fx FX_SABER_IGNITE_CYAN
+				&fx FX_SABER_IGNITE_PINK  &fx FX_COLOR_NEXT
+				&fx FX_BLUE  &fx FX_PURPLE
 				&trans  &trans  &trans  &trans
 				&trans  &trans
 				&trans  &trans  &trans

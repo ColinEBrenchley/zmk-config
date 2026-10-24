@@ -1,6 +1,7 @@
 /*
- * Custom WS2812 effects: selectable red/green palette, saber ignition/flicker,
- * alert, chase pulse, breathing, scanner, and one-shot sweep/dark-wave overlays.
+ * Custom WS2812 effects: selectable multi-color palette, saber ignition/flicker
+ * in several blade colors, alert, chase pulse, breathing, scanner, and one-shot
+ * sweep/dark-wave overlays.
  *
  * Drives the strip behind the `zmk,underglow` chosen node directly, so
  * CONFIG_ZMK_RGB_UNDERGLOW must be disabled.
@@ -67,6 +68,54 @@ enum saber_state {
     SABER_RESTORING,
 };
 
+/* Colors available to the effects and the saber. Keep in sync with the
+ * LED_FX_CMD_* color commands in led_fx.h. */
+enum led_color {
+    LED_COLOR_RED,
+    LED_COLOR_GREEN,
+    LED_COLOR_BLUE,
+    LED_COLOR_PURPLE,
+    LED_COLOR_WHITE,
+    LED_COLOR_YELLOW,
+    LED_COLOR_ORANGE,
+    LED_COLOR_CYAN,
+    LED_COLOR_PINK,
+    LED_COLOR_COUNT,
+};
+
+struct led_rgb8 {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+};
+
+/* Full-intensity colors used by the non-saber effects. */
+static const struct led_rgb8 palette_colors[LED_COLOR_COUNT] = {
+    [LED_COLOR_RED] = {255, 0, 0},
+    [LED_COLOR_GREEN] = {0, 255, 0},
+    [LED_COLOR_BLUE] = {0, 30, 255},
+    [LED_COLOR_PURPLE] = {160, 0, 255},
+    [LED_COLOR_WHITE] = {255, 255, 255},
+    [LED_COLOR_YELLOW] = {255, 220, 0},
+    [LED_COLOR_ORANGE] = {255, 90, 0},
+    [LED_COLOR_CYAN] = {0, 220, 255},
+    [LED_COLOR_PINK] = {255, 40, 160},
+};
+
+/* Blade colors. Kept slightly below the palette maxima so the saber keeps the
+ * same visual intensity as the original red/blue implementation. */
+static const struct led_rgb8 saber_colors[LED_COLOR_COUNT] = {
+    [LED_COLOR_RED] = {200, 0, 0},
+    [LED_COLOR_GREEN] = {0, 210, 20},
+    [LED_COLOR_BLUE] = {0, 20, 210},
+    [LED_COLOR_PURPLE] = {130, 0, 210},
+    [LED_COLOR_WHITE] = {210, 210, 210},
+    [LED_COLOR_YELLOW] = {210, 190, 0},
+    [LED_COLOR_ORANGE] = {220, 90, 0},
+    [LED_COLOR_CYAN] = {0, 190, 210},
+    [LED_COLOR_PINK] = {220, 40, 160},
+};
+
 /* Follow LEDs 4,3,2,1,5,6,7,8. LEDs 9-12 stay white. */
 static const uint8_t animation_path[ANIMATION_LED_COUNT] = {
     3, 2, 1, 0, 7, 6, 5, 4,
@@ -81,7 +130,7 @@ static struct led_rgb px[NUM_LEDS];
 static struct k_work_delayable tick_work;
 
 static volatile uint8_t mode = MODE_SOLID;
-static volatile bool green = false;
+static volatile uint8_t palette = LED_COLOR_RED;
 static volatile uint8_t bri = CONFIG_LED_FX_DEFAULT_BRIGHTNESS; /* percent */
 static volatile int32_t sweep_t = -1;                           /* -1 = inactive */
 static volatile int32_t wave_t = -1;                            /* -1 = inactive */
@@ -90,7 +139,7 @@ static volatile int32_t sound_t = -1;                           /* -1 = inactive
 static uint32_t ticks;
 static volatile enum saber_state saber_state;
 static volatile uint8_t saber_progress;
-static volatile bool saber_red;
+static volatile uint8_t saber_color = LED_COLOR_BLUE;
 static uint32_t saber_previous_ticks;
 
 static const uint8_t trail[TAIL] = {255, 110, 48, 20, 8};
@@ -100,12 +149,20 @@ static const uint8_t sound_wave[16] = {
 
 static inline uint8_t sc(uint8_t v) { return ((uint16_t)v * bri) / 100; }
 
+static inline uint8_t scale_channel(uint8_t channel, uint8_t level) {
+    return sc((uint8_t)(((uint16_t)channel * level) / 255));
+}
+
 static inline uint8_t color_r(uint8_t level) {
-    return green ? 0 : sc(level);
+    return scale_channel(palette_colors[palette].r, level);
 }
 
 static inline uint8_t color_g(uint8_t level) {
-    return green ? sc(level) : 0;
+    return scale_channel(palette_colors[palette].g, level);
+}
+
+static inline uint8_t color_b(uint8_t level) {
+    return scale_channel(palette_colors[palette].b, level);
 }
 
 static inline void set_px(int i, uint8_t r, uint8_t g, uint8_t b) {
@@ -168,9 +225,34 @@ static inline void add_px(int i, uint8_t r, uint8_t g, uint8_t b) {
     px[i].b = sat_add(px[i].b, b);
 }
 
-static inline void add_path_px(int position, uint8_t r, uint8_t g, uint8_t b) {
+/* Helpers for the common "draw the selected palette color at this level" case. */
+static inline void set_color_px(int i, uint8_t level) {
+    set_px(i, color_r(level), color_g(level), color_b(level));
+}
+
+static inline void set_path_color(int position, uint8_t level) {
     if (position >= 0 && position < ANIMATION_LED_COUNT) {
-        add_px(animation_path[position], r, g, b);
+        set_color_px(animation_path[position], level);
+    }
+}
+
+static inline void max_color_px(int i, uint8_t level) {
+    max_px(i, color_r(level), color_g(level), color_b(level));
+}
+
+static inline void max_path_color(int position, uint8_t level) {
+    if (position >= 0 && position < ANIMATION_LED_COUNT) {
+        max_color_px(animation_path[position], level);
+    }
+}
+
+static inline void add_color_px(int i, uint8_t level) {
+    add_px(i, color_r(level), color_g(level), color_b(level));
+}
+
+static inline void add_path_color(int position, uint8_t level) {
+    if (position >= 0 && position < ANIMATION_LED_COUNT) {
+        add_color_px(animation_path[position], level);
     }
 }
 
@@ -182,9 +264,9 @@ static void render_static_white_leds(void) {
 }
 
 static void render_saber(void) {
-    uint8_t red_level = saber_red ? 200 : 0;
-    uint8_t green_level = saber_red ? 0 : 20;
-    uint8_t blue_level = saber_red ? 0 : 210;
+    uint8_t red_level = saber_colors[saber_color].r;
+    uint8_t green_level = saber_colors[saber_color].g;
+    uint8_t blue_level = saber_colors[saber_color].b;
     int lit_leds = saber_progress;
     bool flicker_active = saber_state == SABER_ON;
 
@@ -224,7 +306,7 @@ static void render(void) {
         switch (mode) {
         case MODE_SOLID:
             for (int i = 0; i < NUM_LEDS; i++) {
-                set_px(i, color_r(255), color_g(255), 0);
+                set_color_px(i, 255);
             }
             break;
 
@@ -232,9 +314,9 @@ static void render(void) {
             bool on = ((ticks / 8) % 2) == 0; /* ~240 ms on / 240 ms off */
             for (int i = 0; i < NUM_LEDS; i++) {
                 if (on) {
-                    set_px(i, color_r(255), color_g(255), 0);
+                    set_color_px(i, 255);
                 } else {
-                    set_px(i, color_r(255) / 8, color_g(255) / 8, 0);
+                    set_color_px(i, 31);
                 }
             }
             break;
@@ -243,12 +325,10 @@ static void render(void) {
         case MODE_CHASE: {
             int head = (ticks / 3) % (ANIMATION_LED_COUNT + TAIL); /* ~90 ms per LED */
             for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
-                set_path_px(i, color_r(255) / 5, color_g(255) / 5, 0);
+                set_path_color(i, 51);
             }
             for (int t = 0; t < TAIL; t++) {
-                uint8_t lvl = sc(trail[t]);
-                max_path_px(head - t, color_r(trail[t]), color_g(trail[t]),
-                            t == 0 ? lvl / 2 : 0);
+                max_path_color(head - t, trail[t]);
             }
             break;
         }
@@ -259,7 +339,7 @@ static void render(void) {
             uint32_t v = (tri * tri) / 255;
             v = 10 + (v * 245) / 255;
             for (int i = 0; i < NUM_LEDS; i++) {
-                set_px(i, color_r((uint8_t)v), color_g((uint8_t)v), 0);
+                set_color_px(i, (uint8_t)v);
             }
             break;
         }
@@ -272,13 +352,13 @@ static void render(void) {
                 pos = period - pos;
             }
             for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
-                set_path_px(i, color_r(255) / 16, color_g(255) / 16, 0);
+                set_path_color(i, 16);
             }
-            max_path_px(pos, color_r(255), color_g(255), 0);
-            max_path_px(pos - 1, color_r(80), color_g(80), 0);
-            max_path_px(pos + 1, color_r(80), color_g(80), 0);
-            max_path_px(pos - 2, color_r(16), color_g(16), 0);
-            max_path_px(pos + 2, color_r(16), color_g(16), 0);
+            max_path_color(pos, 255);
+            max_path_color(pos - 1, 80);
+            max_path_color(pos + 1, 80);
+            max_path_color(pos - 2, 16);
+            max_path_color(pos + 2, 16);
             break;
         }
 
@@ -315,9 +395,7 @@ static void render(void) {
                     if (idx < 0 || idx > span) {
                         break;
                     }
-                    uint8_t lvl = sc(trail[t]);
-                    max_path_px(idx, color_r(trail[t]), color_g(trail[t]),
-                                t == 0 ? lvl / 2 : 0);
+                    max_path_color(idx, trail[t]);
                 }
             }
             break;
@@ -334,7 +412,7 @@ static void render(void) {
             }
             /* Faint base */
             for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
-                set_path_px(i, color_r(255) / 8, color_g(255) / 8, 0);
+                set_path_color(i, 31);
             }
             /* Bright pulse at distance `dist` from center (both sides) */
             for (int d = 0; d <= dist; d++) {
@@ -343,10 +421,10 @@ static void render(void) {
                 int left = center - d;
                 int right = center + d;
                 if (left >= 0) {
-                    max_path_px(left, color_r(brightness), color_g(brightness), 0);
+                    max_path_color(left, (uint8_t)brightness);
                 }
                 if (right <= span) {
-                    max_path_px(right, color_r(brightness), color_g(brightness), 0);
+                    max_path_color(right, (uint8_t)brightness);
                 }
             }
             break;
@@ -359,16 +437,13 @@ static void render(void) {
             int head_b = period - (ticks / 3) % period;
 
             for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
-                set_path_px(i, color_r(255) / 5, color_g(255) / 5, 0);
+                set_path_color(i, 51);
             }
             for (int t = 0; t < TAIL; t++) {
-                uint8_t lvl = sc(trail[t]);
                 /* Head A moving forward */
-                max_path_px(head_a - t, color_r(trail[t]), color_g(trail[t]),
-                            t == 0 ? lvl / 2 : 0);
+                max_path_color(head_a - t, trail[t]);
                 /* Head B moving backward */
-                max_path_px(head_b - t, color_r(trail[t]), color_g(trail[t]),
-                            t == 0 ? lvl / 2 : 0);
+                max_path_color(head_b - t, trail[t]);
             }
             break;
         }
@@ -392,7 +467,7 @@ static void render(void) {
                 h ^= h >> 13;
                 h ^= h << 11;
                 uint8_t level = (uint8_t)(h % 256);
-                max_path_px(i, color_r(level), color_g(level), 0);
+                max_path_color(i, level);
             }
             break;
         }
@@ -400,7 +475,7 @@ static void render(void) {
         case MODE_RAIN: {
             /* Multiple independent droplets with short trails. */
             for (int i = 0; i < ANIMATION_LED_COUNT; i++) {
-                set_path_px(i, color_r(255) / 10, color_g(255) / 10, 0);
+                set_path_color(i, 25);
             }
             for (int d = 0; d < RAIN_DROPLETS; d++) {
                 /* Each droplet has a different speed and offset */
@@ -408,8 +483,7 @@ static void render(void) {
                 uint32_t offset = d * 17;
                 int head = ((ticks / speed) + offset) % (ANIMATION_LED_COUNT + 3);
                 for (int t = 0; t < 3; t++) {
-                    uint8_t lvl = sc(trail[t]);
-                    max_path_px(head - t, color_r(trail[t]), color_g(trail[t]), 0);
+                    max_path_color(head - t, trail[t]);
                 }
             }
             break;
@@ -424,9 +498,7 @@ static void render(void) {
     if (!saber_active && !sound_active && sweep_t >= 0 && mode != MODE_OFF) {
         int head = sweep_t / 2;
         for (int t = 0; t < TAIL; t++) {
-            uint8_t lvl = sc(trail[t]);
-            add_path_px(head - t, color_r(trail[t]), color_g(trail[t]),
-                        t == 0 ? lvl / 2 : 0);
+            add_path_color(head - t, trail[t]);
         }
         sweep_t++;
         if ((sweep_t / 2) - (TAIL - 1) >= ANIMATION_LED_COUNT) {
@@ -537,6 +609,24 @@ static void select_mode(uint8_t next_mode) {
     ticks = 0;
 }
 
+static void select_palette(uint8_t color) {
+    palette = color;
+    select_mode(MODE_SOLID);
+}
+
+static void ignite_saber(uint8_t color) {
+    if (saber_state == SABER_IDLE || saber_state == SABER_RESTORING) {
+        saber_previous_ticks = ticks;
+    }
+    saber_color = color;
+    saber_state = SABER_IGNITING;
+    saber_progress = 0;
+    sweep_t = -1;
+    wave_t = -1;
+    sound_t = -1;
+    red_flash_ticks = 0;
+}
+
 int led_fx_command(uint32_t cmd) {
     switch (cmd) {
     case LED_FX_CMD_CHASE:
@@ -547,8 +637,46 @@ int led_fx_command(uint32_t cmd) {
         break;
 
     case LED_FX_CMD_RED:
-        green = false;
-        select_mode(MODE_SOLID);
+        select_palette(LED_COLOR_RED);
+        break;
+
+    case LED_FX_CMD_GREEN:
+        select_palette(LED_COLOR_GREEN);
+        break;
+
+    case LED_FX_CMD_BLUE:
+        select_palette(LED_COLOR_BLUE);
+        break;
+
+    case LED_FX_CMD_PURPLE:
+        select_palette(LED_COLOR_PURPLE);
+        break;
+
+    case LED_FX_CMD_WHITE:
+        select_palette(LED_COLOR_WHITE);
+        break;
+
+    case LED_FX_CMD_YELLOW:
+        select_palette(LED_COLOR_YELLOW);
+        break;
+
+    case LED_FX_CMD_ORANGE:
+        select_palette(LED_COLOR_ORANGE);
+        break;
+
+    case LED_FX_CMD_CYAN:
+        select_palette(LED_COLOR_CYAN);
+        break;
+
+    case LED_FX_CMD_PINK:
+        select_palette(LED_COLOR_PINK);
+        break;
+
+    case LED_FX_CMD_COLOR_NEXT:
+        palette = (palette + 1) % LED_COLOR_COUNT;
+        if (mode == MODE_OFF) {
+            select_mode(MODE_SOLID);
+        }
         break;
 
     case LED_FX_CMD_ALERT:
@@ -612,17 +740,39 @@ int led_fx_command(uint32_t cmd) {
         break;
 
     case LED_FX_CMD_SABER_IGNITE_BLUE:
+        ignite_saber(LED_COLOR_BLUE);
+        break;
+
     case LED_FX_CMD_SABER_IGNITE_RED:
-        if (saber_state == SABER_IDLE || saber_state == SABER_RESTORING) {
-            saber_previous_ticks = ticks;
-        }
-        saber_red = cmd == LED_FX_CMD_SABER_IGNITE_RED;
-        saber_state = SABER_IGNITING;
-        saber_progress = 0;
-        sweep_t = -1;
-        wave_t = -1;
-        sound_t = -1;
-        red_flash_ticks = 0;
+        ignite_saber(LED_COLOR_RED);
+        break;
+
+    case LED_FX_CMD_SABER_IGNITE_GREEN:
+        ignite_saber(LED_COLOR_GREEN);
+        break;
+
+    case LED_FX_CMD_SABER_IGNITE_PURPLE:
+        ignite_saber(LED_COLOR_PURPLE);
+        break;
+
+    case LED_FX_CMD_SABER_IGNITE_WHITE:
+        ignite_saber(LED_COLOR_WHITE);
+        break;
+
+    case LED_FX_CMD_SABER_IGNITE_YELLOW:
+        ignite_saber(LED_COLOR_YELLOW);
+        break;
+
+    case LED_FX_CMD_SABER_IGNITE_ORANGE:
+        ignite_saber(LED_COLOR_ORANGE);
+        break;
+
+    case LED_FX_CMD_SABER_IGNITE_CYAN:
+        ignite_saber(LED_COLOR_CYAN);
+        break;
+
+    case LED_FX_CMD_SABER_IGNITE_PINK:
+        ignite_saber(LED_COLOR_PINK);
         break;
 
     case LED_FX_CMD_SABER_DEACTIVATE:
@@ -635,11 +785,6 @@ int led_fx_command(uint32_t cmd) {
                 saber_state = SABER_DEACTIVATING;
             }
         }
-        break;
-
-    case LED_FX_CMD_GREEN:
-        green = !green;
-        select_mode(MODE_SOLID);
         break;
 
     case LED_FX_CMD_BRI_UP:

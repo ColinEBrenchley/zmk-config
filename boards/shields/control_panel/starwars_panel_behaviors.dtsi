@@ -23,7 +23,11 @@
  *   &fx FX_EQUALIZER pseudo-random spectrum-analyzer bars
  *   &fx FX_RAIN      multiple independent droplets with short trails
  *   &fx FX_SABER_IGNITE_BLUE / FX_SABER_IGNITE_RED ignite and flicker
+ *   &fx FX_SABER_IGNITE_<COLOR>  ignite in green/purple/white/yellow/orange/cyan/pink
  *   &fx FX_SABER_DEACTIVATE extinguishes the saber and fades back to the prior mode
+ *   &fx FX_BLUE / FX_PURPLE / FX_WHITE / FX_YELLOW / FX_ORANGE / FX_CYAN / FX_PINK
+ *                    select that palette color and the solid effect
+ *   &fx FX_COLOR_NEXT cycle the palette color, keeping the current effect
  *   &fx FX_BRI_UP / FX_BRI_DN   brightness (the encoder wrapper below uses these)
  */
 
@@ -52,6 +56,21 @@
 #define FX_SABER_IGNITE_BLUE 23
 #define FX_SABER_IGNITE_RED  24
 #define FX_SABER_DEACTIVATE  25
+#define FX_BLUE    26
+#define FX_PURPLE  27
+#define FX_WHITE   28
+#define FX_YELLOW  29
+#define FX_ORANGE  30
+#define FX_CYAN    31
+#define FX_PINK    32
+#define FX_COLOR_NEXT 33
+#define FX_SABER_IGNITE_GREEN  34
+#define FX_SABER_IGNITE_PURPLE 35
+#define FX_SABER_IGNITE_WHITE  36
+#define FX_SABER_IGNITE_YELLOW 37
+#define FX_SABER_IGNITE_ORANGE 38
+#define FX_SABER_IGNITE_CYAN   39
+#define FX_SABER_IGNITE_PINK   40
 
 / {
 	behaviors {

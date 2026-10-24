@@ -29,6 +29,24 @@ enum led_fx_cmd {
     LED_FX_CMD_SABER_IGNITE_BLUE = 23,
     LED_FX_CMD_SABER_IGNITE_RED = 24,
     LED_FX_CMD_SABER_DEACTIVATE = 25,
+    /* Palette colors (also switch to the solid effect). */
+    LED_FX_CMD_BLUE = 26,
+    LED_FX_CMD_PURPLE = 27,
+    LED_FX_CMD_WHITE = 28,
+    LED_FX_CMD_YELLOW = 29,
+    LED_FX_CMD_ORANGE = 30,
+    LED_FX_CMD_CYAN = 31,
+    LED_FX_CMD_PINK = 32,
+    /* Cycle the palette color without leaving the current effect. */
+    LED_FX_CMD_COLOR_NEXT = 33,
+    /* Saber ignition colors. */
+    LED_FX_CMD_SABER_IGNITE_GREEN = 34,
+    LED_FX_CMD_SABER_IGNITE_PURPLE = 35,
+    LED_FX_CMD_SABER_IGNITE_WHITE = 36,
+    LED_FX_CMD_SABER_IGNITE_YELLOW = 37,
+    LED_FX_CMD_SABER_IGNITE_ORANGE = 38,
+    LED_FX_CMD_SABER_IGNITE_CYAN = 39,
+    LED_FX_CMD_SABER_IGNITE_PINK = 40,
 };
 
 int led_fx_command(uint32_t cmd);
