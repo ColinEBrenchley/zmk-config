@@ -37,7 +37,7 @@ LOG_MODULE_REGISTER(led_fx, CONFIG_ZMK_LOG_LEVEL);
 #define SABER_LED_COUNT 10
 #define SABER_TICK_MS 35
 #define SABER_FADE_TICKS 20
-#define RED_FLASH_TICKS 8
+#define FLASH_TICKS 8
 #define SOUND_TICKS 36
 #define METEOR_TAIL 6
 #define METEOR_PAUSE 12 /* ticks between meteors */
@@ -134,7 +134,8 @@ static volatile uint8_t palette = LED_COLOR_RED;
 static volatile uint8_t bri = CONFIG_LED_FX_DEFAULT_BRIGHTNESS; /* percent */
 static volatile int32_t sweep_t = -1;                           /* -1 = inactive */
 static volatile int32_t wave_t = -1;                            /* -1 = inactive */
-static volatile uint8_t red_flash_ticks;
+static volatile uint8_t flash_ticks;
+static volatile uint8_t flash_color = LED_COLOR_RED;
 static volatile int32_t sound_t = -1;                           /* -1 = inactive */
 static uint32_t ticks;
 static volatile enum saber_state saber_state;
@@ -544,12 +545,15 @@ static void render(void) {
     if (!saber_active && !sound_active && mode != MODE_STARFIELD && mode != MODE_RAINBOW) {
         render_static_white_leds();
     }
-    if (red_flash_ticks > 0) {
-        uint8_t brightness = red_flash_ticks > 5 ? 255 : red_flash_ticks * 40;
+    if (flash_ticks > 0) {
+        uint8_t brightness = flash_ticks > 5 ? 255 : flash_ticks * 40;
+        uint8_t r = (uint16_t)palette_colors[flash_color].r * brightness / 255;
+        uint8_t g = (uint16_t)palette_colors[flash_color].g * brightness / 255;
+        uint8_t b = (uint16_t)palette_colors[flash_color].b * brightness / 255;
         for (int i = 0; i < NUM_LEDS; i++) {
-            set_px(i, brightness, 0, 0);
+            set_px(i, r, g, b);
         }
-        red_flash_ticks--;
+        flash_ticks--;
     }
 
     if (saber_state == SABER_RESTORING) {
@@ -603,6 +607,12 @@ void led_fx_trigger_sweep(void) {
     k_work_reschedule(&tick_work, K_NO_WAIT);
 }
 
+static void trigger_flash(uint8_t color) {
+    flash_color = color;
+    flash_ticks = FLASH_TICKS;
+    k_work_reschedule(&tick_work, K_NO_WAIT);
+}
+
 static void select_mode(uint8_t next_mode) {
     saber_state = SABER_IDLE;
     mode = next_mode;
@@ -624,7 +634,7 @@ static void ignite_saber(uint8_t color) {
     sweep_t = -1;
     wave_t = -1;
     sound_t = -1;
-    red_flash_ticks = 0;
+    flash_ticks = 0;
 }
 
 int led_fx_command(uint32_t cmd) {
@@ -694,8 +704,39 @@ int led_fx_command(uint32_t cmd) {
         return 0;
 
     case LED_FX_CMD_FLASH:
-        red_flash_ticks = RED_FLASH_TICKS;
-        k_work_reschedule(&tick_work, K_NO_WAIT);
+        trigger_flash(LED_COLOR_RED);
+        return 0;
+
+    case LED_FX_CMD_FLASH_GREEN:
+        trigger_flash(LED_COLOR_GREEN);
+        return 0;
+
+    case LED_FX_CMD_FLASH_BLUE:
+        trigger_flash(LED_COLOR_BLUE);
+        return 0;
+
+    case LED_FX_CMD_FLASH_PURPLE:
+        trigger_flash(LED_COLOR_PURPLE);
+        return 0;
+
+    case LED_FX_CMD_FLASH_WHITE:
+        trigger_flash(LED_COLOR_WHITE);
+        return 0;
+
+    case LED_FX_CMD_FLASH_YELLOW:
+        trigger_flash(LED_COLOR_YELLOW);
+        return 0;
+
+    case LED_FX_CMD_FLASH_ORANGE:
+        trigger_flash(LED_COLOR_ORANGE);
+        return 0;
+
+    case LED_FX_CMD_FLASH_CYAN:
+        trigger_flash(LED_COLOR_CYAN);
+        return 0;
+
+    case LED_FX_CMD_FLASH_PINK:
+        trigger_flash(LED_COLOR_PINK);
         return 0;
 
     case LED_FX_CMD_SOUND:

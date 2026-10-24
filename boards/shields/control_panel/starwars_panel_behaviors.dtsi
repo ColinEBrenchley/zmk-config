@@ -14,6 +14,7 @@
  *   &fx FX_GREEN     select the green palette and solid effect
  *   &fx FX_PREV      cycle backward through effects
  *   &fx FX_FLASH     quick full-strip red flash, then restore the current effect
+ *   &fx FX_FLASH_<COLOR>  same flash in green/blue/purple/white/yellow/orange/cyan/pink
  *   &fx FX_SOUND     short cyan soundwave with irregular white twinkles
  *   &fx FX_STARFIELD random star-like twinkle across the strip
  *   &fx FX_METEOR    bright streak with a fading tail, alternating direction
@@ -71,6 +72,14 @@
 #define FX_SABER_IGNITE_ORANGE 38
 #define FX_SABER_IGNITE_CYAN   39
 #define FX_SABER_IGNITE_PINK   40
+#define FX_FLASH_GREEN   41
+#define FX_FLASH_BLUE    42
+#define FX_FLASH_PURPLE  43
+#define FX_FLASH_WHITE   44
+#define FX_FLASH_YELLOW  45
+#define FX_FLASH_ORANGE  46
+#define FX_FLASH_CYAN    47
+#define FX_FLASH_PINK    48
 
 / {
 	behaviors {

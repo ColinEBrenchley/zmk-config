@@ -47,6 +47,15 @@ enum led_fx_cmd {
     LED_FX_CMD_SABER_IGNITE_ORANGE = 38,
     LED_FX_CMD_SABER_IGNITE_CYAN = 39,
     LED_FX_CMD_SABER_IGNITE_PINK = 40,
+    /* One-shot full-strip flashes in a specific color. FX_FLASH (14) is red. */
+    LED_FX_CMD_FLASH_GREEN = 41,
+    LED_FX_CMD_FLASH_BLUE = 42,
+    LED_FX_CMD_FLASH_PURPLE = 43,
+    LED_FX_CMD_FLASH_WHITE = 44,
+    LED_FX_CMD_FLASH_YELLOW = 45,
+    LED_FX_CMD_FLASH_ORANGE = 46,
+    LED_FX_CMD_FLASH_CYAN = 47,
+    LED_FX_CMD_FLASH_PINK = 48,
 };
 
 int led_fx_command(uint32_t cmd);
