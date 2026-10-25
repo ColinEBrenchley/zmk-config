@@ -14,6 +14,17 @@ config LED_FX_DEFAULT_BRIGHTNESS
 	range 5 LED_FX_MAX_BRIGHTNESS
 	default 30
 
+config LED_FX_FLASH_MAX_BRIGHTNESS
+	int "Maximum white-equivalent flash brightness (percent)"
+	range 5 100
+	default 60
+	help
+	  Peak brightness for the one-shot flash effects, expressed as the
+	  brightness a full-white flash may use. Colors that drive fewer than
+	  three channels are scaled up so their total current stays within the
+	  same budget. Raise this only if the board stays stable; full-white
+	  flashes above the USB current limit can brown out the 5V rail.
+
 config LED_FX_SWEEP_ON_KEYPRESS
 	bool "Trigger an LED sweep on every key press"
 	default n

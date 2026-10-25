@@ -551,9 +551,16 @@ static void render(void) {
          * at 100% for eight ticks. Full-brightness white (all three channels
          * across 12 LEDs) exceeds a USB port's 500 mA budget, sags the 5V rail,
          * and makes the blue channel droop, so the flash looks yellow or the
-         * board resets. Honor the brightness setting with a small boost for
-         * punch, capped well below the full-white current. */
-        uint32_t flash_bri = MIN(bri + 15, 60);
+         * board resets. Cap the white-equivalent current, but let single- and
+         * two-channel colors run brighter because they draw less. */
+        uint32_t channel_sum = (uint32_t)palette_colors[flash_color].r +
+                               palette_colors[flash_color].g +
+                               palette_colors[flash_color].b;
+        uint32_t flash_bri = channel_sum == 0
+                                 ? CONFIG_LED_FX_FLASH_MAX_BRIGHTNESS
+                                 : (uint32_t)CONFIG_LED_FX_FLASH_MAX_BRIGHTNESS * 765 /
+                                       channel_sum;
+        flash_bri = MIN(flash_bri, 100);
         uint8_t r = (uint32_t)palette_colors[flash_color].r * flash_bri * brightness / 25500;
         uint8_t g = (uint32_t)palette_colors[flash_color].g * flash_bri * brightness / 25500;
         uint8_t b = (uint32_t)palette_colors[flash_color].b * flash_bri * brightness / 25500;
