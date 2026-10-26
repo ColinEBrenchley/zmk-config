@@ -10,10 +10,8 @@
  *   15-16 2-key group B
  *   17-18 2-key group C
  *   19-22 4-key group
- *   23-24 2-key group D   -> next LED effect / F12
- *   25    flip switch A   -> holds layer 1 (FX) while ON
- *   26    flip switch B   -> holds layer 2 (mode B) while ON
- *   27    flip switch C   -> holds layer 3 (mode C) while ON
+ *   23    flip switch A   -> holds layer 1 (FX) while ON
+ *   24    flip switch B   -> holds layer 2 (mode B) while ON
  *
  * Layers stack: for each key the highest ACTIVE layer with a binding other
  * than &trans wins. Layer index = order in this file (base = 0).
@@ -21,7 +19,7 @@
  *   0 base      always on
  *   1 fx        switch A
  *   2 mode_b    switch B
- *   3 mode_c    switch C
+ *   3 mode_c    (reserved)
  *   4 mode_ab   automatically on when A and B are both ON (conditional layer)
  *
  * Everything except 1-9 and the LED/switch keys is a placeholder: change freely.
@@ -72,7 +70,6 @@
 				&kp T  &kp N  &v_previous_mode  &w_next_mode
 				
 				&mo 1  &mo 2
-				&kp Z  &kp SPACE  &kp RET
 			>;
 
 			sensor-bindings = <
@@ -91,7 +88,6 @@
 				&fx FX_BLUE  &fx FX_PURPLE
 				&trans  &trans  &trans  &trans
 				&trans  &trans
-				&trans  &trans  &trans
 			>;
 
 			sensor-bindings = <
@@ -110,7 +106,6 @@
 				&trans  &trans
 				&trans  &trans  &trans  &trans
 				&trans  &trans
-				&trans  &trans  &trans
 			>;
 		};
 
@@ -124,7 +119,6 @@
 				&trans  &trans
 				&trans  &trans  &trans  &trans
 				&trans  &trans
-				&trans  &trans  &trans
 			>;
 		};
 
@@ -138,7 +132,6 @@
 				&trans  &trans
 				&trans  &trans  &trans  &trans
 				&trans  &trans
-				&trans  &trans  &trans
 			>;
 		};
 	};

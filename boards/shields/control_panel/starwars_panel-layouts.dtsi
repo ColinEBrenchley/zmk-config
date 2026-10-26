@@ -11,8 +11,7 @@
  *   pos 15-16 : 2-key group B         -> R3C0, R3C1
  *   pos 17-18 : 2-key group C         -> R3C2, R3C3
  *   pos 19-22 : 4-key group           -> R3C4, R4C0..R4C2
- *   pos 23-24 : 2-key group D         -> R4C3, R4C4
- *   pos 25-27 : flip switches A, B, C (direct GPIO via kscan-composite) -> R0C5, R0C6, R0C7
+ *   pos 23-24 : flip switches A and B, wired into the matrix -> R1C0, R2C0
  *
  * The physical layout below is a PLACEHOLDER grid (units of 1/100 key) used by
  * tools like ZMK Studio / keymap editors. Edit x/y to match your real panel.
@@ -28,7 +27,7 @@
 
 	default_transform: keymap_transform_0 {
 		compatible = "zmk,matrix-transform";
-		columns = <8>;
+		columns = <5>;
 		rows = <5>;
 		map = <
 				RC(3,0)			RC(3,4)
@@ -41,7 +40,6 @@
 			RC(0,3) RC(0,1)
 			RC(0,0) RC(4,0) RC(4,1) RC(4,2)
 			RC(1,0) RC(2,0)
-			RC(0,5) RC(0,6) RC(0,7)
 		>;
 	};
 
@@ -80,13 +78,9 @@
 			, <&key_physical_attrs 100 100 100 300 0 0 0>
 			, <&key_physical_attrs 100 100 200 300 0 0 0>
 			, <&key_physical_attrs 100 100 300 300 0 0 0>
-			// 2-key group D, pos 23-24
+			// Matrix toggle switches A and B, pos 23-24
 			, <&key_physical_attrs 100 100 600 200 0 0 0>
 			, <&key_physical_attrs 100 100 700 200 0 0 0>
-			// flip switches A, B, C, pos 25-27
-			, <&key_physical_attrs 100 100 800 100 0 0 0>
-			, <&key_physical_attrs 100 100 800 200 0 0 0>
-			, <&key_physical_attrs 100 100 800 300 0 0 0>
 			;
 	};
 };

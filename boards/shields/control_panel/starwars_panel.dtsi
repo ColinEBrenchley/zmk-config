@@ -1,15 +1,14 @@
 /*
  * Star Wars control panel - hardware description (nice!nano v2 / pro micro pinout)
  *
- * 5x5 row2col matrix (25 keys), 2x EC11 encoders, 12x WS2812B on SPI3 MOSI.
+ * 5x5 row2col matrix (23 keys + 2 layer switches), 2x EC11 encoders,
+ * 12x WS2812B on SPI3 MOSI.
  *
  *   Rows (outputs) : D4  D5  D6  D7  D8
  *   Cols (inputs)  : D9  D10 D16 D14 D15
  *   Encoder 1 A/B  : D2  D3
  *   Encoder 2 A/B  : A0  A1
  *   WS2812 data    : D1 (P0.06) via SPI3 MOSI
- *   Flip switches  : A (A2), B (D0), C (A3), each switch -> GND
- *                    (direct GPIO, internal pull-up, closed = ON)
  *
  * &pro_micro N: D0-D10 = 0-10, D14/D15/D16 = 14/15/16, A3/A2/A1/A0 = 18/19/20/21
  */
@@ -18,7 +17,7 @@
 
 / {
 	chosen {
-		zmk,kscan = &kscan_composite;
+		zmk,kscan = &kscan0;
 		zmk,underglow = &led_strip;
 	};
 
@@ -42,36 +41,6 @@
 			, <&pro_micro 7 GPIO_ACTIVE_HIGH>
 			, <&pro_micro 8 GPIO_ACTIVE_HIGH>
 			;
-	};
-
-	/*
-	 * Three flip switches on direct GPIOs. Closed to GND = "pressed" (held).
-	 * Order here = column order: A = RC(0,5), B = RC(0,6), C = RC(0,7).
-	 */
-	kscan_direct: kscan_direct {
-		compatible = "zmk,kscan-gpio-direct";
-		wakeup-source;
-		input-gpios
-			= <&pro_micro 19 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
-			, <&pro_micro 0  (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
-			, <&pro_micro 18 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
-			;
-	};
-
-	/* Matrix (5 cols) + 3 switches (offset to columns 5-7) as one 5x8 scan */
-	kscan_composite: kscan_composite {
-		compatible = "zmk,kscan-composite";
-		rows = <5>;
-		columns = <8>;
-
-		matrix {
-			kscan = <&kscan0>;
-		};
-
-		direct {
-			kscan = <&kscan_direct>;
-			column-offset = <5>;
-		};
 	};
 
 	left_encoder: encoder_left {
