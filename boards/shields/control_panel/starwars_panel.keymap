@@ -64,14 +64,14 @@
 					&kp C_MUTE  	&kp E
 				&kp N7  &kp N8  &kp N9  &kp EQUAL
 				&kp N4  &kp N5  &kp N6  
-				&kp N1  &kp N2  &kp N3  &kp RET  
+				&kp N1  &kp N2  &kp N3  &kp L  
 					&kp N0  	&kp PERIOD
 				
 				&b_red_flash  &kp C
 				&s_soundwave  &kp U
 				&kp T  &kp N  &v_previous_mode  &w_next_mode
 				
-				&mo 1  &kp Y
+				&mo 1  &mo 2
 				&kp Z  &kp SPACE  &kp RET
 			>;
 
@@ -95,7 +95,7 @@
 			>;
 
 			sensor-bindings = <
-				&inc_dec_kp PG_UP PG_DN
+				&fx_bri
 				&inc_dec_kp UP DOWN
 			>;
 		};
@@ -103,7 +103,7 @@
 		mode_b_layer {
 			display-name = "Mode B";
 			bindings = <
-				&kp F1  &kp F2  &kp F3  &kp F4  &kp F5  &kp F6  &kp F7  &kp F8  &kp F9
+				&kp C_MUTE  &kp F2  &kp Q  &kp UP  &kp E  &kp F6  &kp LEFT  &kp DOWN  &kp RIGHT
 				&trans  &trans  &trans  &trans
 				&trans  &trans
 				&trans  &trans
