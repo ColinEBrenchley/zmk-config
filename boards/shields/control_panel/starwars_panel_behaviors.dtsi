@@ -31,6 +31,7 @@
  *                    select that palette color and the solid effect
  *   &fx FX_COLOR_NEXT cycle the palette color, keeping the current effect
  *   &fx FX_BRI_UP / FX_BRI_DN   brightness (the encoder wrapper below uses these)
+ *   &fx FX_BAR_NEXT / FX_BAR_PREV cycle the independent four-LED red light bar
  */
 
 #define FX_RED     0
@@ -82,6 +83,8 @@
 #define FX_FLASH_CYAN    47
 #define FX_FLASH_PINK    48
 #define FX_FLASH_SABER   49
+#define FX_BAR_NEXT      50
+#define FX_BAR_PREV      51
 
 / {
 	behaviors {

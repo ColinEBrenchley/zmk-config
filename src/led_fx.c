@@ -28,6 +28,8 @@ LOG_MODULE_REGISTER(led_fx, CONFIG_ZMK_LOG_LEVEL);
 
 #define STRIP_NODE DT_CHOSEN(zmk_underglow)
 #define NUM_LEDS DT_PROP(STRIP_NODE, chain_length)
+#define BAR_LED_COUNT 4
+#define MAIN_LED_COUNT (NUM_LEDS - BAR_LED_COUNT)
 
 #define TICK_MS 30
 #define BRI_STEP 5
@@ -66,6 +68,14 @@ enum saber_state {
     SABER_ON,
     SABER_DEACTIVATING,
     SABER_RESTORING,
+};
+
+enum bar_mode {
+    BAR_MODE_BREATHE,
+    BAR_MODE_SCANNER,
+    BAR_MODE_SOLID,
+    BAR_MODE_OFF,
+    BAR_MODE_COUNT,
 };
 
 /* Colors available to the effects and the saber. Keep in sync with the
@@ -116,7 +126,7 @@ static const struct led_rgb8 saber_colors[LED_COLOR_COUNT] = {
     [LED_COLOR_PINK] = {220, 40, 160},
 };
 
-/* Follow LEDs 4,3,2,1,5,6,7,8. LEDs 9-12 stay white. */
+/* Main strip: follow LEDs 4,3,2,1,5,6,7,8. Main LEDs 9-12 stay white. */
 static const uint8_t animation_path[ANIMATION_LED_COUNT] = {
     3, 2, 1, 0, 7, 6, 5, 4,
 };
@@ -138,6 +148,8 @@ static volatile uint8_t flash_ticks;
 static volatile uint8_t flash_color = LED_COLOR_RED;
 static volatile int32_t sound_t = -1;                           /* -1 = inactive */
 static uint32_t ticks;
+static uint32_t bar_ticks;
+static volatile uint8_t bar_mode = BAR_MODE_BREATHE;
 static volatile enum saber_state saber_state;
 static volatile uint8_t saber_progress;
 static volatile uint8_t saber_color = LED_COLOR_BLUE;
@@ -167,12 +179,12 @@ static inline uint8_t color_b(uint8_t level) {
 }
 
 static inline void set_px(int i, uint8_t r, uint8_t g, uint8_t b) {
-    if (i < 0 || i >= NUM_LEDS) {
+    if (i < 0 || i >= MAIN_LED_COUNT) {
         return;
     }
-    px[i].r = r;
-    px[i].g = g;
-    px[i].b = b;
+    px[i + BAR_LED_COUNT].r = r;
+    px[i + BAR_LED_COUNT].g = g;
+    px[i + BAR_LED_COUNT].b = b;
 }
 
 static inline void set_path_px(int position, uint8_t r, uint8_t g, uint8_t b) {
@@ -182,12 +194,12 @@ static inline void set_path_px(int position, uint8_t r, uint8_t g, uint8_t b) {
 }
 
 static inline void max_px(int i, uint8_t r, uint8_t g, uint8_t b) {
-    if (i < 0 || i >= NUM_LEDS) {
+    if (i < 0 || i >= MAIN_LED_COUNT) {
         return;
     }
-    px[i].r = MAX(px[i].r, r);
-    px[i].g = MAX(px[i].g, g);
-    px[i].b = MAX(px[i].b, b);
+    px[i + BAR_LED_COUNT].r = MAX(px[i + BAR_LED_COUNT].r, r);
+    px[i + BAR_LED_COUNT].g = MAX(px[i + BAR_LED_COUNT].g, g);
+    px[i + BAR_LED_COUNT].b = MAX(px[i + BAR_LED_COUNT].b, b);
 }
 
 static inline void max_path_px(int position, uint8_t r, uint8_t g, uint8_t b) {
@@ -218,12 +230,12 @@ static inline uint8_t sat_add(uint8_t a, uint8_t b) {
 }
 
 static inline void add_px(int i, uint8_t r, uint8_t g, uint8_t b) {
-    if (i < 0 || i >= NUM_LEDS) {
+    if (i < 0 || i >= MAIN_LED_COUNT) {
         return;
     }
-    px[i].r = sat_add(px[i].r, r);
-    px[i].g = sat_add(px[i].g, g);
-    px[i].b = sat_add(px[i].b, b);
+    px[i + BAR_LED_COUNT].r = sat_add(px[i + BAR_LED_COUNT].r, r);
+    px[i + BAR_LED_COUNT].g = sat_add(px[i + BAR_LED_COUNT].g, g);
+    px[i + BAR_LED_COUNT].b = sat_add(px[i + BAR_LED_COUNT].b, b);
 }
 
 /* Helpers for the common "draw the selected palette color at this level" case. */
@@ -290,6 +302,52 @@ static void render_saber(void) {
     }
 }
 
+static void render_light_bar(void) {
+    uint8_t levels[BAR_LED_COUNT] = {0};
+
+    switch (bar_mode) {
+    case BAR_MODE_BREATHE: {
+        uint32_t phase = (bar_ticks * 2) % 128;
+        uint32_t triangle = phase < 64 ? phase * 4 : (127 - phase) * 4;
+        uint8_t level = 10 + ((triangle * triangle / 255) * 245) / 255;
+        for (int i = 0; i < BAR_LED_COUNT; i++) {
+            levels[i] = level;
+        }
+        break;
+    }
+    case BAR_MODE_SCANNER: {
+        int span = BAR_LED_COUNT - 1;
+        int period = span * 2;
+        int position = (bar_ticks / 2) % period;
+        if (position > span) {
+            position = period - position;
+        }
+        levels[position] = 255;
+        if (position > 0) {
+            levels[position - 1] = 80;
+        }
+        if (position < span) {
+            levels[position + 1] = 80;
+        }
+        break;
+    }
+    case BAR_MODE_SOLID:
+        for (int i = 0; i < BAR_LED_COUNT; i++) {
+            levels[i] = 255;
+        }
+        break;
+    case BAR_MODE_OFF:
+    case BAR_MODE_COUNT:
+        break;
+    }
+
+    for (int i = 0; i < BAR_LED_COUNT; i++) {
+        px[i].r = sc((uint8_t)(220 * levels[i] / 255));
+        px[i].g = 0;
+        px[i].b = 0;
+    }
+}
+
 static void render(void) {
     memset(px, 0, sizeof(px));
 
@@ -298,7 +356,7 @@ static void render(void) {
     bool sound_active = sound_t >= 0 && mode != MODE_OFF && !saber_active;
     if (sound_active) {
         uint8_t background = sc(24);
-        for (int i = 0; i < NUM_LEDS; i++) {
+        for (int i = 0; i < MAIN_LED_COUNT; i++) {
             set_px(i, 0, 0, background);
         }
     } else if (saber_active) {
@@ -306,14 +364,14 @@ static void render(void) {
     } else {
         switch (mode) {
         case MODE_SOLID:
-            for (int i = 0; i < NUM_LEDS; i++) {
+            for (int i = 0; i < MAIN_LED_COUNT; i++) {
                 set_color_px(i, 255);
             }
             break;
 
         case MODE_ALERT: {
             bool on = ((ticks / 8) % 2) == 0; /* ~240 ms on / 240 ms off */
-            for (int i = 0; i < NUM_LEDS; i++) {
+            for (int i = 0; i < MAIN_LED_COUNT; i++) {
                 if (on) {
                     set_color_px(i, 255);
                 } else {
@@ -339,7 +397,7 @@ static void render(void) {
             uint32_t tri = p < 64 ? p * 4 : (127 - p) * 4;
             uint32_t v = (tri * tri) / 255;
             v = 10 + (v * 245) / 255;
-            for (int i = 0; i < NUM_LEDS; i++) {
+            for (int i = 0; i < MAIN_LED_COUNT; i++) {
                 set_color_px(i, (uint8_t)v);
             }
             break;
@@ -364,13 +422,13 @@ static void render(void) {
         }
 
         case MODE_STARFIELD: {
-            for (int i = 0; i < NUM_LEDS; i++) {
+            for (int i = 0; i < MAIN_LED_COUNT; i++) {
                 set_px(i, sc(10), sc(10), sc(10));
             }
             for (int i = 0; i < 5; i++) {
                 uint32_t h = (uint32_t)(ticks * 7 + i * 131) * 0x9E3779B9u;
                 h ^= h >> 16;
-                int pos = (int)(h % NUM_LEDS);
+                int pos = (int)(h % MAIN_LED_COUNT);
                 uint32_t v = h % 100;
                 if (v < 25) {
                     uint8_t b = sc(255);
@@ -564,7 +622,7 @@ static void render(void) {
         uint8_t r = (uint32_t)palette_colors[flash_color].r * flash_bri * brightness / 25500;
         uint8_t g = (uint32_t)palette_colors[flash_color].g * flash_bri * brightness / 25500;
         uint8_t b = (uint32_t)palette_colors[flash_color].b * flash_bri * brightness / 25500;
-        for (int i = 0; i < NUM_LEDS; i++) {
+        for (int i = 0; i < MAIN_LED_COUNT; i++) {
             set_px(i, r, g, b);
         }
         flash_ticks--;
@@ -572,16 +630,19 @@ static void render(void) {
 
     if (saber_state == SABER_RESTORING) {
         uint16_t brightness = (uint16_t)saber_progress * 255 / SABER_FADE_TICKS;
-        for (int i = 0; i < NUM_LEDS; i++) {
+        for (int i = BAR_LED_COUNT; i < NUM_LEDS; i++) {
             px[i].r = (uint16_t)px[i].r * brightness / 255;
             px[i].g = (uint16_t)px[i].g * brightness / 255;
             px[i].b = (uint16_t)px[i].b * brightness / 255;
         }
     }
+
+    render_light_bar();
 }
 
 static void tick(struct k_work *work) {
     ticks++;
+    bar_ticks++;
     switch (saber_state) {
     case SABER_IGNITING:
         if (++saber_progress >= SABER_LED_COUNT) {
@@ -758,6 +819,16 @@ int led_fx_command(uint32_t cmd) {
          * out; fall back to red when no saber is active. */
         trigger_flash(saber_state == SABER_IDLE ? LED_COLOR_RED : saber_color);
         return 0;
+
+    case LED_FX_CMD_BAR_NEXT:
+        bar_mode = (bar_mode + 1) % BAR_MODE_COUNT;
+        bar_ticks = 0;
+        break;
+
+    case LED_FX_CMD_BAR_PREV:
+        bar_mode = (bar_mode + BAR_MODE_COUNT - 1) % BAR_MODE_COUNT;
+        bar_ticks = 0;
+        break;
 
     case LED_FX_CMD_SOUND:
         sound_t = 0;

@@ -58,6 +58,9 @@ enum led_fx_cmd {
     LED_FX_CMD_FLASH_PINK = 48,
     /* Flash the blade's current saber color (falls back to red when idle). */
     LED_FX_CMD_FLASH_SABER = 49,
+    /* Cycle the independent four-LED red light bar. */
+    LED_FX_CMD_BAR_NEXT = 50,
+    LED_FX_CMD_BAR_PREV = 51,
 };
 
 int led_fx_command(uint32_t cmd);
