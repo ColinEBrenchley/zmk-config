@@ -1,9 +1,7 @@
 /*
  * Star Wars control panel - hardware description (nice!nano v2 / pro micro pinout)
  *
- * 5x5 row2col matrix (25 keys), 2x EC11 encoders, 16x WS2812B on SPI3 MOSI.
- * The first four LEDs form an independent light bar; the remaining 12 are the
- * existing effect strip.
+ * 5x5 row2col matrix (25 keys), 2x EC11 encoders, 12x WS2812B on SPI3 MOSI.
  *
  *   Rows (outputs) : D4  D5  D6  D7  D8
  *   Cols (inputs)  : D9  D10 D16 D14 D15
@@ -22,7 +20,6 @@
 	chosen {
 		zmk,kscan = &kscan_composite;
 		zmk,underglow = &led_strip;
-		zephyr,console = &cdc_acm_uart0;
 	};
 
 	kscan0: kscan_0 {
@@ -100,12 +97,6 @@
 	};
 };
 
-&usbd {
-	cdc_acm_uart0: cdc_acm_uart0 {
-		compatible = "zephyr,cdc-acm-uart";
-	};
-};
-
 /* WS2812B on SPI3, MOSI only (P0.06 = D1 on nice!nano) */
 &pinctrl {
 	spi3_default: spi3_default {
@@ -133,7 +124,7 @@
 		compatible = "worldsemi,ws2812-spi";
 		reg = <0>;
 		spi-max-frequency = <4000000>;
-		chain-length = <16>;
+		chain-length = <12>;
 		spi-one-frame = <0x70>;
 		spi-zero-frame = <0x40>;
 		color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>;

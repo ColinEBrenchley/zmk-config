@@ -89,7 +89,7 @@
 				&fx FX_SABER_IGNITE_ORANGE  &fx FX_SABER_IGNITE_CYAN
 				&fx FX_SABER_IGNITE_PINK  &fx FX_COLOR_NEXT
 				&fx FX_BLUE  &fx FX_PURPLE
-				&fx FX_BAR_PREV  &fx FX_BAR_NEXT  &trans  &trans
+				&trans  &trans  &trans  &trans
 				&trans  &trans
 				&trans  &trans  &trans
 			>;
