@@ -22,6 +22,7 @@
 	chosen {
 		zmk,kscan = &kscan_composite;
 		zmk,underglow = &led_strip;
+		zephyr,console = &cdc_acm_uart0;
 	};
 
 	kscan0: kscan_0 {
@@ -96,6 +97,12 @@
 		compatible = "zmk,keymap-sensors";
 		sensors = <&left_encoder &right_encoder>;
 		triggers-per-rotation = <20>;
+	};
+};
+
+&usbd {
+	cdc_acm_uart0: cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
 	};
 };
 

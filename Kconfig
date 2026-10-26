@@ -7,23 +7,59 @@ if LED_FX
 config LED_FX_MAX_BRIGHTNESS
 	int "Maximum LED FX brightness (percent)"
 	range 5 100
-	default 50
+	default 30
 
 config LED_FX_DEFAULT_BRIGHTNESS
 	int "Default LED FX brightness (percent)"
 	range 5 LED_FX_MAX_BRIGHTNESS
 	default 30
 
-config LED_FX_FLASH_MAX_BRIGHTNESS
-	int "Maximum white-equivalent flash brightness (percent)"
-	range 5 100
-	default 60
+config LED_FX_MAX_MA
+	int "Estimated LED strip current limit (mA)"
+	range 50 1000
+	default 250
 	help
-	  Peak brightness for the one-shot flash effects, expressed as the
-	  brightness a full-white flash may use. Colors that drive fewer than
-	  three channels are scaled up so their total current stays within the
-	  same budget. Raise this only if the board stays stable; full-white
-	  flashes above the USB current limit can brown out the 5V rail.
+	  Approximate maximum LED strip current. The estimate assumes 20 mA
+	  per color channel at full scale and 1 mA idle per pixel.
+
+config LED_FX_STARTUP_DELAY_MS
+	int "Delay before first LED strip update (ms)"
+	range 0 5000
+	default 500
+
+config LED_FX_STARTUP_RAMP_MS
+	int "LED startup brightness ramp duration (ms)"
+	range 100 10000
+	default 1500
+
+config LED_FX_STARTUP_GROUP_SIZE
+	int "Number of LEDs added per startup stage"
+	range 1 16
+	default 4
+
+config LED_FX_STARTUP_GROUP_INTERVAL_MS
+	int "Delay between startup LED groups (ms)"
+	range 10 1000
+	default 100
+
+config LED_FX_TEST_MODE
+	int "Compile-time LED power test mode (0 disables tests)"
+	range 0 5
+	default 0
+	help
+	  0: Normal effects. 1: all off. 2: one pixel at a time, RGB. 3:
+	  25/50/100 percent single-channel frames. 4: white ramp with VDD
+	  monitoring. 5: capped purple for 60 seconds.
+
+config LED_FX_TEST_VDD_MIN_MV
+	int "Stop white-ramp test below this VDD (mV)"
+	range 1700 3600
+	default 2700
+
+config LED_FX_VDD_REPORT_INTERVAL_MS
+	int "VDD diagnostic reporting interval (ms)"
+	range 100 10000
+	default 1000
 
 config LED_FX_SWEEP_ON_KEYPRESS
 	bool "Trigger an LED sweep on every key press"
