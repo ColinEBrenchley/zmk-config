@@ -27,4 +27,3 @@ manifest:
       revision: main
   self:
     path: config
-    path: config

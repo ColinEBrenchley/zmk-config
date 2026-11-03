@@ -1,0 +1,2 @@
+config SHIELD_STARWARS_PANEL
+	def_bool $(shields_list_contains,starwars_panel)

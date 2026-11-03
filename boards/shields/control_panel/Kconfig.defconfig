@@ -1,0 +1,6 @@
+if SHIELD_STARWARS_PANEL
+
+config ZMK_KEYBOARD_NAME
+	default "SW Panel"
+
+endif

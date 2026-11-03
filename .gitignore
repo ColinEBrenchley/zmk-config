@@ -5,3 +5,4 @@ boards/shields/cos2/
 .zephyr/
 zephyr/
 build/
+.venv/

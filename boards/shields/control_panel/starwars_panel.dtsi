@@ -1,0 +1,101 @@
+/*
+ * Star Wars control panel - hardware description (nice!nano v2 / pro micro pinout)
+ *
+ * 5x5 row2col matrix (23 keys + 2 layer switches), 2x EC11 encoders,
+ * 12x WS2812B on SPI3 MOSI.
+ *
+ *   Rows (outputs) : D4  D5  D6  D7  D8
+ *   Cols (inputs)  : D9  D10 D16 D14 D15
+ *   Encoder 1 A/B  : D2  D3
+ *   Encoder 2 A/B  : A0  A1
+ *   WS2812 data    : D1 (P0.06) via SPI3 MOSI
+ *
+ * &pro_micro N: D0-D10 = 0-10, D14/D15/D16 = 14/15/16, A3/A2/A1/A0 = 18/19/20/21
+ */
+
+#include <dt-bindings/led/led.h>
+
+/ {
+	chosen {
+		zmk,kscan = &kscan0;
+		zmk,underglow = &led_strip;
+	};
+
+	kscan0: kscan_0 {
+		compatible = "zmk,kscan-gpio-matrix";
+		diode-direction = "row2col";
+		wakeup-source;
+
+		col-gpios
+			= <&pro_micro 9  (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+			, <&pro_micro 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+			, <&pro_micro 16 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+			, <&pro_micro 14 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+			, <&pro_micro 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+			;
+
+		row-gpios
+			= <&pro_micro 4 GPIO_ACTIVE_HIGH>
+			, <&pro_micro 5 GPIO_ACTIVE_HIGH>
+			, <&pro_micro 6 GPIO_ACTIVE_HIGH>
+			, <&pro_micro 7 GPIO_ACTIVE_HIGH>
+			, <&pro_micro 8 GPIO_ACTIVE_HIGH>
+			;
+	};
+
+	left_encoder: encoder_left {
+		compatible = "alps,ec11";
+		a-gpios = <&pro_micro 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+		b-gpios = <&pro_micro 3 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+		steps = <80>;
+		status = "okay";
+	};
+
+	right_encoder: encoder_right {
+		compatible = "alps,ec11";
+		a-gpios = <&pro_micro 21 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+		b-gpios = <&pro_micro 20 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+		steps = <80>;
+		status = "okay";
+	};
+
+	sensors {
+		compatible = "zmk,keymap-sensors";
+		sensors = <&left_encoder &right_encoder>;
+		triggers-per-rotation = <20>;
+	};
+};
+
+/* WS2812B on SPI3, MOSI only (P0.06 = D1 on nice!nano) */
+&pinctrl {
+	spi3_default: spi3_default {
+		group1 {
+			psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>;
+		};
+	};
+
+	spi3_sleep: spi3_sleep {
+		group1 {
+			psels = <NRF_PSEL(SPIM_MOSI, 0, 6)>;
+			low-power-enable;
+		};
+	};
+};
+
+&spi3 {
+	compatible = "nordic,nrf-spim";
+	status = "okay";
+	pinctrl-0 = <&spi3_default>;
+	pinctrl-1 = <&spi3_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	led_strip: ws2812@0 {
+		compatible = "worldsemi,ws2812-spi";
+		reg = <0>;
+		spi-max-frequency = <4000000>;
+		chain-length = <12>;
+		spi-one-frame = <0x70>;
+		spi-zero-frame = <0x40>;
+		color-mapping = <LED_COLOR_ID_GREEN LED_COLOR_ID_RED LED_COLOR_ID_BLUE>;
+	};
+};
